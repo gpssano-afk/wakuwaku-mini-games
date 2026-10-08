@@ -33,7 +33,7 @@
     return true;
   }
 
-  // Small solver for fixed-data validation. Never runs during normal gameplay.
+  // Small solver for validation. Never runs during normal gameplay.
   function solve(stage) {
     const blocked = new Set(stage.blocked.map(key));
     const walkableCount = stage.rows * stage.cols - blocked.size;
@@ -65,18 +65,16 @@
   const board = document.getElementById("board");
   if (!board) return;
 
-  const stages = window.HitofudeStages;
-  const storageKey = "wakuwaku.hitofude.stage.v1";
+  const generator = window.HitofudeStages;
+  const difficulty = new URLSearchParams(window.location.search).get("difficulty") === "hard" ? "hard" : "easy";
+  document.getElementById("difficulty-label").textContent = difficulty === "hard" ? "むずかしい" : "かんたん";
   const overlay = document.getElementById("clear-overlay");
   const title = document.getElementById("clear-title");
   const nextButton = document.getElementById("next");
   const hint = document.getElementById("hint");
   const announcement = document.getElementById("announcement");
-  let index = 0;
-  try {
-    const stored = Number(localStorage.getItem(storageKey));
-    if (Number.isInteger(stored) && stored >= 0 && stored < stages.length) index = stored;
-  } catch { /* Storage can be unavailable in private mode; the game still works. */ }
+  let number = 1;
+  let stage = generator.generate(difficulty);
   let state;
   let activePointer = null;
   let wire;
@@ -123,19 +121,17 @@
     if (id !== null && board.hasPointerCapture(id)) board.releasePointerCapture(id);
   }
 
-  function loadStage(number) {
+  function loadStage() {
     endDrag();
-    index = number;
-    state = createState(stages[index]);
-    try { localStorage.setItem(storageKey, String(index)); } catch { /* Optional persistence. */ }
+    state = createState(stage);
     board.replaceChildren();
     bulbElements.clear();
     board.setAttribute("viewBox", `0 0 ${state.stage.cols * 100} ${state.stage.rows * 100}`);
     for (let row = 0; row < state.stage.rows; row++) {
       for (let col = 0; col < state.stage.cols; col++) {
-        if (!state.blocked.has(key({ row, col }))) {
-          board.append(svg("rect", { class: "cell", x: col * 100 + 6, y: row * 100 + 6, width: 88, height: 88, rx: 14 }));
-        }
+        const blocked = state.blocked.has(key({ row, col }));
+        board.append(svg("rect", { class: blocked ? "blocked-cell" : "cell", x: col * 100 + 6, y: row * 100 + 6, width: 88, height: 88, rx: 14 }));
+        if (blocked) board.append(svg("path", { class: "blocked-mark", d: `M${col * 100 + 40} ${row * 100 + 40}l20 20m0-20-20 20` }));
       }
     }
     wire = svg("path", { class: "wire", "pointer-events": "none" });
@@ -143,7 +139,7 @@
     board.append(wire, tipMarker);
     state.stage.bulbs.forEach(drawBulb);
     drawBattery(state.stage.battery);
-    document.getElementById("stage-number").textContent = `${index + 1} / ${stages.length}`;
+    document.getElementById("stage-number").textContent = `もんだい ${number}`;
     overlay.hidden = true;
     announcement.textContent = "";
     render();
@@ -162,17 +158,17 @@
       tipMarker.setAttribute("cy", point.y);
     }
     bulbElements.forEach((element, id) => element.classList.toggle("lit", state.lit.has(id)));
-    board.dataset.stage = String(index + 1);
+    board.dataset.stage = String(number);
+    board.dataset.difficulty = difficulty;
     board.dataset.pathLength = String(state.path.length);
     board.dataset.litCount = String(state.lit.size);
     board.dataset.cleared = String(state.cleared);
-    board.setAttribute("aria-label", `だい${index + 1}もん。${state.walkableCount}マスのうち${state.visited.size}マスを とおったよ。でんちから ぜんぶのマスを なぞってね。キーボードでは やじるしキーで すすめるよ。`);
+    board.setAttribute("aria-label", `だい${number}もん。${state.walkableCount}マスのうち${state.visited.size}マスを とおったよ。でんちから ぜんぶのマスを なぞってね。キーボードでは やじるしキーで すすめるよ。`);
     hint.textContent = state.cleared ? "ぜんぶのマスを とおれたね！" :
       state.path.length ? "せんの さきから のこりのマスへ！" : "でんちから ぜんぶのマスを なぞってね";
     if (state.cleared && overlay.hidden) {
-      const last = index === stages.length - 1;
-      title.textContent = last ? "ぜんぶ できた！" : "できた！";
-      nextButton.textContent = last ? "もういちど" : "つぎへ";
+      title.textContent = "できた！";
+      nextButton.textContent = "つぎへ";
       overlay.hidden = false;
       announcement.textContent = title.textContent;
       nextButton.focus({ preventScroll: true });
@@ -248,11 +244,13 @@
     move(state, { row: tip.row + direction[0], col: tip.col + direction[1] });
     render();
   });
-  document.getElementById("reset").addEventListener("click", () => loadStage(index));
+  document.getElementById("reset").addEventListener("click", loadStage);
   nextButton.addEventListener("click", () => {
     if (!state.cleared) return;
-    loadStage(index === stages.length - 1 ? 0 : index + 1);
+    stage = generator.generate(difficulty);
+    number++;
+    loadStage();
     board.focus({ preventScroll: true });
   });
-  loadStage(index);
+  loadStage();
 })();
