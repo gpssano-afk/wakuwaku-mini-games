@@ -4,46 +4,43 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#edf6fc">
+  <meta name="description" content="子どもと遊べる、シンプルなミニゲーム。電池から電球をつなぐ一筆書きパズル。">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>ピカッとひとふで | わくわくミニゲーム</title>
-  <link rel="manifest" href="../../manifest.json">
-  <link rel="icon" type="image/png" href="../../icons/icon-192.png">
-  <link rel="apple-touch-icon" href="../../icons/icon-192.png">
-  <link rel="stylesheet" href="../../style.css">
+  <meta name="apple-mobile-web-app-title" content="わくわく">
+  <title>わくわくミニゲーム</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/png" href="./icons/icon-192.png">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
   <link rel="stylesheet" href="./style.css">
-  <script src="../../app.js" defer></script>
-  <script src="./stages.js" defer></script>
-  <script src="./game.js" defer></script>
+  <script src="./app.js" defer></script>
 </head>
 <body>
-  <main class="game-screen">
-    <header class="game-header">
-      <div class="toolbar">
-        <a class="icon-button" href="../../index.html" aria-label="ホームへもどる" title="ホームへもどる">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7M6 9v11h5v-6h2v6h5V9"/></svg>
-        </a>
-        <h1>ピカッとひとふで</h1>
-        <button class="icon-button" id="reset" type="button" aria-label="リセット" title="リセット">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7a9 9 0 1 0 1 8M20 3v5h-5"/></svg>
-        </button>
-      </div>
-      <p class="subtitle">でんきを ぜんぶ つなごう！</p>
-      <p id="stage-number" class="stage-number" aria-label="ステージ">1 / 10</p>
+  <main class="home">
+    <header class="home-heading">
+      <span class="small-spark" aria-hidden="true">✦</span>
+      <h1>わくわくミニゲーム</h1>
+      <p>どれで あそぶ？</p>
     </header>
-    <section class="play-area" aria-label="パズル">
-      <div class="board-wrap">
-        <svg id="board" viewBox="0 0 300 300" role="img" aria-label="パズル盤面" tabindex="0"></svg>
-        <div id="clear-overlay" class="clear-overlay" hidden>
-          <div class="clear-card" role="dialog" aria-labelledby="clear-title">
-            <div class="clear-spark" aria-hidden="true">✦</div>
-            <h2 id="clear-title">できた！</h2>
-            <button id="next" class="next-button" type="button">つぎへ</button>
-          </div>
-        </div>
-      </div>
-      <p id="hint" class="hint">でんちから なぞってね</p>
-    </section>
-    <p id="announcement" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
+    <div class="games" aria-label="ゲームをえらぶ">
+      <a class="game-card" href="./games/hitofude/index.html">
+        <span class="game-art" aria-hidden="true">
+          <svg viewBox="0 0 120 120" fill="none">
+            <path d="M18 96H42V74H65" stroke="#758ed0" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="18" cy="96" r="6" fill="#758ed0"/>
+            <circle cx="73" cy="46" r="32" fill="#ffedbb"/>
+            <path d="M73 23a23 23 0 0 0-15 40c5 4 6 7 6 12h18c0-5 1-8 6-12a23 23 0 0 0-15-40Z" fill="#ffd66b" stroke="#ba8b26" stroke-width="3"/>
+            <path d="m64 47 9 8 9-8M73 55v20" stroke="#fffdf5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="63" y="75" width="20" height="11" rx="4" fill="#4c657d"/>
+            <path d="M73 9V4M99 24l5-4M103 47h6M46 24l-5-4" stroke="#ba8b26" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="game-copy">
+          <span class="game-title">ピカッとひとふで</span>
+          <span class="game-description">でんきを つなぐ パズル</span>
+          <span class="play-label">あそぶ</span>
+        </span>
+      </a>
+    </div>
   </main>
   <noscript><p class="noscript">ゲームで遊ぶにはJavaScriptを有効にしてください。</p></noscript>
 </body>
