@@ -5,14 +5,14 @@
   const adjacent = (a, b) => Math.abs(a.row - b.row) + Math.abs(a.col - b.col) === 1;
 
   function createState(stage) {
-    return { stage, path: [], visited: new Set(), lit: new Set(), cleared: false,
+    return { stage, path: [], visited: new Set(), lit: new Set(), cleared: false, failed: false,
       blocked: new Set(stage.blocked.map(key)), bulbs: new Set(stage.bulbs.map(key)),
       walkableCount: stage.rows * stage.cols - stage.blocked.length };
   }
 
   function begin(state, cell) {
     const tip = state.path.length ? state.path[state.path.length - 1] : state.stage.battery;
-    if (state.cleared || !same(tip, cell)) return false;
+    if (state.cleared || state.failed || !same(tip, cell)) return false;
     if (!state.path.length) {
       state.path.push({ ...cell });
       state.visited.add(key(cell));
@@ -23,7 +23,7 @@
   function move(state, cell) {
     const tip = state.path[state.path.length - 1];
     const id = key(cell);
-    if (!tip || state.cleared || !Number.isInteger(cell.row) || !Number.isInteger(cell.col) ||
+    if (!tip || state.cleared || state.failed || !Number.isInteger(cell.row) || !Number.isInteger(cell.col) ||
         cell.row < 0 || cell.row >= state.stage.rows || cell.col < 0 || cell.col >= state.stage.cols ||
         state.blocked.has(id) || state.visited.has(id) || !adjacent(tip, cell)) return false;
     state.path.push({ ...cell });
@@ -31,6 +31,79 @@
     if (state.bulbs.has(id)) state.lit.add(id);
     state.cleared = state.visited.size === state.walkableCount;
     return true;
+  }
+
+  // Exact continuation search, capped for touch responsiveness. Unknown is never
+  // a failure. Only proven dead states are memoized; generated solutions are unused.
+  function checkContinuation(state, { timeLimitMs = 8, nodeLimit = 10000,
+    now = () => globalThis.performance?.now() ?? Date.now() } = {}) {
+    if (state.cleared) return "possible";
+    const { rows, cols } = state.stage;
+    if (!state.path.length || rows > 5 || cols > 5 || rows * cols > 25) return "unknown";
+    if (timeLimitMs <= 0 || nodeLimit <= 0) return "unknown";
+    const deadline = now() + timeLimitMs;
+    const neighbors = new Int32Array(rows * cols);
+    let remaining = 0;
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const cell = { row, col }, index = row * cols + col;
+        if (state.blocked.has(key(cell))) continue;
+        if (!state.visited.has(key(cell))) remaining |= 1 << index;
+        for (const next of [
+          { row: row - 1, col }, { row: row + 1, col },
+          { row, col: col - 1 }, { row, col: col + 1 },
+        ]) {
+          if (next.row >= 0 && next.row < rows && next.col >= 0 && next.col < cols &&
+              !state.blocked.has(key(next))) neighbors[index] |= 1 << (next.row * cols + next.col);
+        }
+      }
+    }
+    const count = mask => {
+      let total = 0;
+      while (mask) { mask &= mask - 1; total++; }
+      return total;
+    };
+    const indexOf = bit => 31 - Math.clz32(bit);
+    const dead = new Set();
+    let nodes = 0;
+    function search(current, rest) {
+      if (!rest) return "possible";
+      if (++nodes > nodeLimit || now() >= deadline) return "unknown";
+      const memo = rest * 32 + current;
+      if (dead.has(memo)) return "impossible";
+      const available = rest | (1 << current);
+      let frontier = 1 << current, reached = frontier;
+      while (frontier) {
+        const bit = frontier & -frontier;
+        frontier ^= bit;
+        const added = neighbors[indexOf(bit)] & available & ~reached;
+        reached |= added;
+        frontier |= added;
+      }
+      if (reached !== available) return "impossible";
+      // Apart from the current endpoint, at most one remaining vertex may
+      // require being an endpoint of the final path.
+      let leaves = 0;
+      for (let mask = rest; mask;) {
+        const bit = mask & -mask; mask ^= bit;
+        const degree = count(neighbors[indexOf(bit)] & available);
+        if (!degree || (degree === 1 && ++leaves > 1)) return "impossible";
+      }
+      const candidates = [];
+      for (let mask = neighbors[current] & rest; mask;) {
+        const bit = mask & -mask; mask ^= bit;
+        candidates.push(indexOf(bit));
+      }
+      candidates.sort((a, b) => count(neighbors[a] & rest) - count(neighbors[b] & rest));
+      for (const next of candidates) {
+        const result = search(next, rest & ~(1 << next));
+        if (result !== "impossible") return result;
+      }
+      dead.add(memo);
+      return "impossible";
+    }
+    const tip = state.path[state.path.length - 1];
+    return search(tip.row * cols + tip.col, remaining);
   }
 
   // Small solver for validation. Never runs during normal gameplay.
@@ -61,7 +134,7 @@
   }
 
   // The same functions are used by the UI and the plain browser test page.
-  window.Hitofude = Object.freeze({ createState, begin, move, solve, adjacent });
+  window.Hitofude = Object.freeze({ createState, begin, move, solve, adjacent, checkContinuation });
   const board = document.getElementById("board");
   if (!board) return;
 
@@ -141,6 +214,8 @@
     drawBattery(state.stage.battery);
     document.getElementById("stage-number").textContent = `もんだい ${number}`;
     overlay.hidden = true;
+    delete overlay.dataset.result;
+    board.dataset.continuation = "unchecked";
     announcement.textContent = "";
     render();
   }
@@ -163,16 +238,25 @@
     board.dataset.pathLength = String(state.path.length);
     board.dataset.litCount = String(state.lit.size);
     board.dataset.cleared = String(state.cleared);
+    board.dataset.failed = String(state.failed);
     board.setAttribute("aria-label", `だい${number}もん。${state.walkableCount}マスのうち${state.visited.size}マスを とおったよ。でんちから ぜんぶのマスを なぞってね。キーボードでは やじるしキーで すすめるよ。`);
-    hint.textContent = state.cleared ? "ぜんぶのマスを とおれたね！" :
+    hint.textContent = state.failed ? "もういちど やってみよう！" : state.cleared ? "ぜんぶのマスを とおれたね！" :
       state.path.length ? "せんの さきから のこりのマスへ！" : "でんちから ぜんぶのマスを なぞってね";
-    if (state.cleared && overlay.hidden) {
-      title.textContent = "できた！";
-      nextButton.textContent = "つぎへ";
-      overlay.hidden = false;
-      announcement.textContent = title.textContent;
-      nextButton.focus({ preventScroll: true });
-    }
+  }
+
+  function finishTurn() {
+    if (state.failed) return;
+    const result = checkContinuation(state);
+    board.dataset.continuation = result;
+    if (result === "impossible") state.failed = true;
+    render();
+    if (!state.cleared && !state.failed) return;
+    title.textContent = state.failed ? "まちがえちゃった！" : "できた！";
+    nextButton.textContent = state.failed ? "もういちど" : "つぎへ";
+    overlay.dataset.result = state.failed ? "failed" : "cleared";
+    overlay.hidden = false;
+    announcement.textContent = title.textContent;
+    nextButton.focus({ preventScroll: true });
   }
 
   function cellAt(event) {
@@ -228,6 +312,7 @@
     const cell = cellAt(event);
     if (cell && advance(cell)) render();
     endDrag();
+    finishTurn();
   });
   board.addEventListener("pointercancel", event => { if (event.pointerId === activePointer) endDrag(); });
   board.addEventListener("lostpointercapture", event => { if (event.pointerId === activePointer) activePointer = null; });
@@ -237,15 +322,24 @@
   board.addEventListener("keydown", event => {
     const directions = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
     const direction = directions[event.key];
-    if (!direction || state.cleared) return;
+    if (!direction || state.cleared || state.failed) return;
     event.preventDefault();
     if (!state.path.length) begin(state, state.stage.battery);
     const tip = state.path[state.path.length - 1];
     move(state, { row: tip.row + direction[0], col: tip.col + direction[1] });
     render();
   });
+  // Keyboard users get the same result after releasing an arrow key.
+  board.addEventListener("keyup", event => {
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key) && activePointer === null) finishTurn();
+  });
   document.getElementById("reset").addEventListener("click", loadStage);
   nextButton.addEventListener("click", () => {
+    if (state.failed) {
+      loadStage();
+      board.focus({ preventScroll: true });
+      return;
+    }
     if (!state.cleared) return;
     stage = generator.generate(difficulty);
     number++;

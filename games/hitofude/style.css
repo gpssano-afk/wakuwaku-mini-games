@@ -65,3 +65,5 @@
   .play-area { padding-top: 10px; gap: 10px; }
 }
 .clear-overlay[hidden] { display: none; }
+
+.clear-overlay[data-result="failed"] h2 { font-size: clamp(1.25rem, 5vw, 1.5rem); }
