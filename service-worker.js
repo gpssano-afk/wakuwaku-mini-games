@@ -1,6 +1,6 @@
 "use strict";
 // Increment VERSION when publishing changes to the precached game files.
-const VERSION = "v5";
+const VERSION = "v6";
 const ROOT = new URL("./", self.location.href);
 // Include the scope so two apps hosted on one origin never delete each other's cache.
 const PREFIX = `wakuwaku:${ROOT.pathname}:`;
@@ -10,6 +10,8 @@ const FILES = [
   "icons/icon-192.png", "icons/icon-512.png",
   "games/hitofude/index.html", "games/hitofude/difficulty.html", "games/hitofude/style.css",
   "games/hitofude/game.js", "games/hitofude/stages.js",
+  "games/block-fit/index.html", "games/block-fit/difficulty.html", "games/block-fit/style.css",
+  "games/block-fit/game.js", "games/block-fit/generator.js",
 ].map(path => new URL(path, ROOT).href);
 
 self.addEventListener("install", event => {

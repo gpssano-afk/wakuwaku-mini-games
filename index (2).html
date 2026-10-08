@@ -4,15 +4,22 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ゲームロジックの検証</title>
-  <script src="../games/hitofude/stages.js" defer></script>
-  <script src="../games/hitofude/game.js" defer></script>
+  <script src="./games/hitofude/stages.js" defer></script>
+  <script src="./games/hitofude/game.js" defer></script>
   <script src="./tests.js" defer></script>
+  <script src="./games/block-fit/generator.js" defer></script>
+  <script src="./games/block-fit/game.js" defer></script>
+  <script src="./games/block-fit/tests.js" defer></script>
   <style>body{font:16px/1.7 system-ui,sans-serif;margin:24px;color:#243f59}pre{white-space:pre-wrap}a{color:#355ba3}</style>
 </head>
 <body>
   <h1>ゲームロジックの検証</h1>
   <p>実際のゲームと同じJavaScriptで、移動のルールと、自動生成した両難易度の各5000問を確認します。</p>
+  <h2>ピカッとひとふで</h2>
   <pre id="results">検証中…</pre>
-  <a href="../index.html">ホームへもどる</a>
+  <h2>ブロックぴったり</h2>
+  <p>両難易度を各1000問生成し、連結形状・回転なしの解答・配置・クリア・リセットを確認します。</p>
+  <pre id="block-results">検証中…</pre>
+  <a href="./index.html">ホームへもどる</a>
 </body>
 </html>
