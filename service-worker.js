@@ -1,6 +1,6 @@
 "use strict";
 // Increment VERSION when publishing changes to the precached game files.
-const VERSION = "v2";
+const VERSION = "v3";
 const ROOT = new URL("./", self.location.href);
 // Include the scope so two apps hosted on one origin never delete each other's cache.
 const PREFIX = `wakuwaku:${ROOT.pathname}:`;
@@ -13,7 +13,10 @@ const FILES = [
 ].map(path => new URL(path, ROOT).href);
 
 self.addEventListener("install", event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES)).then(() => self.skipWaiting()));
+  // Refresh the HTTP cache too, so a new version never precaches stale assets.
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(
+    FILES.map(url => new Request(url, { cache: "reload" })),
+  )).then(() => self.skipWaiting()));
 });
 self.addEventListener("activate", event => {
   event.waitUntil(caches.keys().then(keys => Promise.all(

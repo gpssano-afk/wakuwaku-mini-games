@@ -6,7 +6,8 @@
 
   function createState(stage) {
     return { stage, path: [], visited: new Set(), lit: new Set(), cleared: false,
-      blocked: new Set(stage.blocked.map(key)), bulbs: new Set(stage.bulbs.map(key)) };
+      blocked: new Set(stage.blocked.map(key)), bulbs: new Set(stage.bulbs.map(key)),
+      walkableCount: stage.rows * stage.cols - stage.blocked.length };
   }
 
   function begin(state, cell) {
@@ -28,18 +29,18 @@
     state.path.push({ ...cell });
     state.visited.add(id);
     if (state.bulbs.has(id)) state.lit.add(id);
-    state.cleared = state.lit.size === state.bulbs.size;
+    state.cleared = state.visited.size === state.walkableCount;
     return true;
   }
 
   // Small solver for fixed-data validation. Never runs during normal gameplay.
   function solve(stage) {
     const blocked = new Set(stage.blocked.map(key));
-    const bulbs = new Set(stage.bulbs.map(key));
+    const walkableCount = stage.rows * stage.cols - blocked.size;
     const path = [stage.battery];
     const visited = new Set([key(stage.battery)]);
     function search(cell) {
-      if ([...bulbs].every(id => visited.has(id))) return path.map(item => ({ ...item }));
+      if (visited.size === walkableCount) return path.map(item => ({ ...item }));
       for (const next of [
         { row: cell.row, col: cell.col + 1 }, { row: cell.row + 1, col: cell.col },
         { row: cell.row, col: cell.col - 1 }, { row: cell.row - 1, col: cell.col },
@@ -165,9 +166,9 @@
     board.dataset.pathLength = String(state.path.length);
     board.dataset.litCount = String(state.lit.size);
     board.dataset.cleared = String(state.cleared);
-    board.setAttribute("aria-label", `第${index + 1}問。${state.stage.bulbs.length}この電球のうち${state.lit.size}こ点灯。電池から指でなぞります。キーボードでは矢印キーで進めます。`);
-    hint.textContent = state.cleared ? "ぜんぶ つながったね" :
-      state.path.length ? "せんの さきから つづけてね" : "でんちから なぞってね";
+    board.setAttribute("aria-label", `だい${index + 1}もん。${state.walkableCount}マスのうち${state.visited.size}マスを とおったよ。でんちから ぜんぶのマスを なぞってね。キーボードでは やじるしキーで すすめるよ。`);
+    hint.textContent = state.cleared ? "ぜんぶのマスを とおれたね！" :
+      state.path.length ? "せんの さきから のこりのマスへ！" : "でんちから ぜんぶのマスを なぞってね";
     if (state.cleared && overlay.hidden) {
       const last = index === stages.length - 1;
       title.textContent = last ? "ぜんぶ できた！" : "できた！";

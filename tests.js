@@ -53,6 +53,22 @@
     state = game.createState(state.stage);
     assert(!state.path.length && !state.visited.size && !state.lit.size && !state.cleared, "Reset failed");
   });
+  test("電池のマスも通過済みに数える", () => {
+    const state = started();
+    assert(state.visited.size === 1 && state.path.length === 1 && !state.cleared, "Battery wasn't counted");
+  });
+  test("一部の電球だけではクリアしない・解答探索も全マスを通る", () => {
+    // A sparse-bulb fixture distinguishes the new rule from the old one.
+    const stage = { rows: 2, cols: 2, battery: cell(0, 0), bulbs: [cell(0, 1)], blocked: [] };
+    const state = game.createState(stage);
+    game.begin(state, stage.battery);
+    game.move(state, cell(0, 1));
+    assert(state.lit.size === 1 && !state.cleared, "Cleared with unvisited open cells");
+    game.move(state, cell(1, 1));
+    assert(!state.cleared, "Cleared before the final cell");
+    assert(game.move(state, cell(1, 0)) && state.cleared, "Didn't clear all cells");
+    assert(game.solve(stage).length === 4, "Solver stopped at the last bulb");
+  });
   const solutions = [];
   stages.forEach((stage, index) => {
     test(`ステージ${index + 1}に有効な解答がある`, () => {
@@ -62,6 +78,17 @@
       assert(new Set(ids).size === ids.length, "Repeated cell in solution");
       assert(solution[0].row === stage.battery.row && solution[0].col === stage.battery.col, "Wrong start");
       const forbidden = new Set(stage.blocked.map(item => `${item.row},${item.col}`));
+      const walkableCount = stage.rows * stage.cols - forbidden.size;
+      assert(stage.bulbs.length === walkableCount - 1, "Every open cell except battery must be a bulb");
+      const bulbIds = new Set(stage.bulbs.map(item => `${item.row},${item.col}`));
+      for (let row = 0; row < stage.rows; row++) {
+        for (let col = 0; col < stage.cols; col++) {
+          const id = `${row},${col}`;
+          const battery = row === stage.battery.row && col === stage.battery.col;
+          assert(bulbIds.has(id) === (!battery && !forbidden.has(id)), "Incorrect bulb placement");
+        }
+      }
+      assert(solution.length === walkableCount, "Solution doesn't cover every open cell");
       solution.forEach((item, position) => {
         assert(item.row >= 0 && item.row < stage.rows && item.col >= 0 && item.col < stage.cols && !forbidden.has(ids[position]), "Invalid solution cell");
         if (position) assert(Math.abs(item.row - solution[position - 1].row) + Math.abs(item.col - solution[position - 1].col) === 1, "Non-adjacent solution step");
@@ -69,7 +96,11 @@
       assert(stage.bulbs.every(item => ids.includes(`${item.row},${item.col}`)), "Missing bulb");
       const state = game.createState(stage);
       assert(game.begin(state, solution[0]), "Cannot start solution");
-      solution.slice(1).forEach(next => assert(game.move(state, next), "Game rejected solution"));
+      solution.slice(1).forEach((next, position) => {
+        assert(game.move(state, next), "Game rejected solution");
+        assert(state.cleared === (position === solution.length - 2), "Cleared before all cells were visited");
+      });
+      assert(state.visited.size === walkableCount, "Not all open cells were visited");
       assert(state.cleared && state.lit.size === stage.bulbs.length, "Game didn't clear solution");
       solutions.push(solution);
     });
