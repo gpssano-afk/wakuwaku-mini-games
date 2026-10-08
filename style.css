@@ -1,0 +1,57 @@
+:root {
+  color-scheme: light;
+  --ink: #2c4662;
+  --blue: #41679e;
+  --background: #edf6fc;
+  font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
+  color: var(--ink);
+  background: var(--background);
+  -webkit-tap-highlight-color: transparent;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+button, a { touch-action: manipulation; }
+button { font: inherit; }
+a { color: inherit; }
+button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
+  outline: 3px solid #355ba3;
+  outline-offset: 5px;
+}
+[hidden] { display: none !important; }
+.home {
+  width: min(100%, 760px);
+  margin: 0 auto;
+  padding: max(46px, env(safe-area-inset-top)) max(22px, env(safe-area-inset-right)) 48px max(22px, env(safe-area-inset-left));
+}
+.home-heading { margin-bottom: 36px; text-align: center; }
+.small-spark { color: #bc8c28; font-size: 2.5rem; display: block; margin-bottom: 10px; }
+h1 { font-size: clamp(1.7rem, 5.7vw, 2.5rem); letter-spacing: .01em; line-height: 1.45; margin: 0; }
+.home-heading p { font-size: 1.0625rem; margin: 12px 0 0; }
+.games { display: grid; gap: 22px; }
+.game-card {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 28px 24px;
+  border: 2px solid #d5e4f1;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 8px 0 #dfeaf4;
+  transition: transform .15s, box-shadow .15s;
+}
+.game-card:active { transform: translateY(4px); box-shadow: 0 4px 0 #dfeaf4; }
+.game-art { width: clamp(84px, 22vw, 120px); flex-shrink: 0; }
+.game-art svg { display: block; width: 100%; height: auto; }
+.game-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 0; }
+.game-title { font-size: clamp(1.25rem, 4.5vw, 1.625rem); font-weight: 800; line-height: 1.5; }
+.game-description { font-size: .9375rem; line-height: 1.6; }
+.play-label { margin-top: 6px; color: #fff; background: var(--blue); border-radius: 999px; padding: 10px 26px; font-weight: 700; }
+.noscript { margin: 24px; text-align: center; }
+@media (min-width: 640px) {
+  .home { padding-top: 72px; }
+  .game-card { padding: 36px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

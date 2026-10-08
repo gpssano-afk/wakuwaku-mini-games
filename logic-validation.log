@@ -1,0 +1,25 @@
+PASS 10ステージの固定データ
+PASS 電池以外から開始できない
+PASS 上下左右のみが隣接
+PASS 通行禁止・盤面外・飛び越しを無視
+PASS 通行可能マスでも斜めは禁止
+PASS 点灯・再訪禁止・先端から再開
+PASS リセット後は経路・点灯・クリアを初期化
+PASS ステージ1に有効な解答がある
+PASS ステージ2に有効な解答がある
+PASS ステージ3に有効な解答がある
+PASS ステージ4に有効な解答がある
+PASS ステージ5に有効な解答がある
+PASS ステージ6に有効な解答がある
+PASS ステージ7に有効な解答がある
+PASS ステージ8に有効な解答がある
+PASS ステージ9に有効な解答がある
+PASS ステージ10に有効な解答がある
+
+17 / 17 PASS
+PASS: all JavaScript files parse
+PASS: service worker precaches 11 existing assets
+PASS: offline mock responses for home, game, CSS, JS, manifest and icons
+PASS: subdirectory scope, query URLs and directory game route
+PASS: cache cleanup preserves other applications
+NOTE: JavaScript engine and mock Cache API tests; not a real browser/PWA installation test.

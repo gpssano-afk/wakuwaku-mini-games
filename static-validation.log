@@ -1,0 +1,7 @@
+PASS: relative HTML references index.html
+PASS: relative HTML references tests/index.html
+PASS: relative HTML references games/hitofude/index.html
+PASS: PNG icon 192x192
+PASS: PNG icon 512x512
+PASS: manifest and subdirectory-relative PWA paths
+PASS: no external HTML resources; no package.json or build step

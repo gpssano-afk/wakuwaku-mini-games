@@ -1,0 +1,6 @@
+PASS: real game.js handlers in a lightweight DOM mock
+PASS: initial stage, battery start, blocked, diagonal, outside, second finger, revisit
+PASS: SVG bulb state, pointer resume/cancel, reset and fast straight sweep
+PASS: all 10 stages via pointer handlers, next, final message and restart
+PASS: keyboard controls and saved-stage recovery
+NOTE: DOM/event mocks do not verify real touch devices or rendered CSS layout.

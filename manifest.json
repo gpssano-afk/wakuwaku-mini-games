@@ -1,0 +1,16 @@
+{
+  "id": "./",
+  "name": "わくわくミニゲーム",
+  "short_name": "わくわく",
+  "description": "子どもと遊べるミニゲーム集",
+  "lang": "ja",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#edf6fc",
+  "theme_color": "#edf6fc",
+  "icons": [
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
