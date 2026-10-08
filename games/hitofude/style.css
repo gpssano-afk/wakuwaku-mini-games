@@ -59,3 +59,4 @@
   .subtitle { margin-top: 6px; }
   .play-area { padding-top: 10px; gap: 10px; }
 }
+.clear-overlay[hidden] { display: none; }
