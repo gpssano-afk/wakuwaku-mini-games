@@ -25,11 +25,17 @@
       !bulbs.has(key(stage.battery)) && [...bulbs].every(id => visited.has(id));
   }
 
+  // Within a set the grid never shrinks; legacy calls stay randomized.
+  function sizeForQuestion(difficulty,question) {
+    if (!Number.isInteger(question) || question < 1 || question > 10) return null;
+    return (difficulty === "hard" ? 4 : 3) + (question >= 6 ? 1 : 0);
+  }
+
   // Build a simple path first; cells outside it become obstacles. Bounded retries
   // keep generation quick, with a guaranteed serpentine path as a fallback.
-  function generate(difficulty = "easy", random = Math.random) {
+  function generate(difficulty = "easy", random = Math.random, question = null) {
     difficulty = difficulty === "hard" ? "hard" : "easy";
-    const size = difficulty === "hard" ? 5 : random() < .65 ? 3 : 4;
+    const size = sizeForQuestion(difficulty, question) ?? (difficulty === "hard" ? 5 : random() < .65 ? 3 : 4);
     const total = size * size;
     const obstacles = difficulty === "hard" ? 3 + Math.floor(random() * 4) :
       (size === 3 ? 1 : 2) + Math.floor(random() * 2);
@@ -37,7 +43,7 @@
     let path;
     for (let attempt = 0; attempt < 150; attempt++) {
       const start = difficulty === "hard" ?
-        { row: 1 + Math.floor(random() * 3), col: 1 + Math.floor(random() * 3) } :
+        { row: 1 + Math.floor(random() * (size - 2)), col: 1 + Math.floor(random() * (size - 2)) } :
         { row: random() < .5 ? 0 : size - 1, col: random() < .5 ? 0 : size - 1 };
       const candidate = [start];
       const visited = new Set([key(start)]);
@@ -87,5 +93,5 @@
     return Object.freeze(stage);
   }
 
-  window.HitofudeStages = Object.freeze({ generate, isValid });
+  window.HitofudeStages = Object.freeze({ generate, isValid, sizeForQuestion });
 })();
