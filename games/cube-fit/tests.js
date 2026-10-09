@@ -26,16 +26,16 @@
   function imageDifference(a,b){const union=new Set([...a.keys(),...b.keys()]);let different=0;for(const key of union)if(a.get(key)!==b.get(key))different++;return different/union.size;}
   function inspect(puzzle){
     const {size,missing,remaining,options}=puzzle,removed=new Set(missing.map(id));
-    assert(size===3&&options.length===3,'Invalid size/choice count');assert(joined(missing)&&joined(remaining),'Disconnected cube/hole');
+    assert(size===(puzzle.difficulty==='hard'?4:3)&&options.length===3,'Invalid size/choice count');assert(joined(missing)&&joined(remaining),'Disconnected cube/hole');
     const complete=[];for(let x=0;x<size;x++)for(let y=0;y<size;y++)for(let z=0;z<size;z++)complete.push({x,y,z});
     assert(missing.every(c=>[c.x,c.y,c.z].every(n=>Number.isInteger(n)&&n>=0&&n<size)),'Hole out of bounds');
     assert(remaining.length+missing.length===size**3,'Wrong occupied count');assert(remaining.every(c=>!removed.has(id(c)))&&new Set([...missing,...remaining].map(id)).size===size**3,'Incomplete/disjoint coverage');
     const exteriorOwners=new Set([...oracleImage(complete).values()].map(f=>f.owner));
     for(const c of missing){assert(exteriorOwners.has(id(c)),'Hidden deciding voxel');for(let z=c.z+1;z<size;z++)assert(removed.has(`${c.x},${c.y},${z}`),'Cannot insert from above');}
     checkImage(remaining);const images=[];
-    for(const piece of options){assert(joined(piece),'Disconnected option');assert(piece.every(c=>[c.x,c.y,c.z].every(n=>Number.isInteger(n)&&n>=0&&n<3)),'Invalid option coordinates');const image=checkImage(piece),seen=new Set([...image.values()].map(f=>f.owner));assert(piece.every(c=>seen.has(id(c))),'Hidden option voxel');images.push(imageSignature(image));}
+    for(const piece of options){assert(joined(piece),'Disconnected option');assert(piece.every(c=>[c.x,c.y,c.z].every(n=>Number.isInteger(n)&&n>=0&&n<size)),'Invalid option coordinates');const image=checkImage(piece),seen=new Set([...image.values()].map(f=>f.owner));assert(piece.every(c=>seen.has(id(c))),'Hidden option voxel');images.push(imageSignature(image));}
     const matches=options.map(piece=>fits(puzzle,piece));assert(matches.filter(Boolean).length===1,'Not exactly one solution');
-    for(let i=0;i<3;i++)for(let j=i+1;j<3;j++){assert(!sameUnderRotation(options[i],options[j]),'Rotationally equivalent choices');assert(imageDifference(images[i],images[j])+1e-10>=(puzzle.difficulty==='easy'?.26:.14),'Indistinguishable projected choices');}
+    for(let i=0;i<3;i++)for(let j=i+1;j<3;j++){assert(!sameUnderRotation(options[i],options[j]),'Rotationally equivalent choices');assert(imageDifference(images[i],images[j])+1e-10>=(puzzle.difficulty==='easy'&&missing.length<=3?.26:.14),'Indistinguishable projected choices');}
     assert(normalized(options[matches.indexOf(true)])===normalized(missing),'Wrong answer shape');
     return matches.indexOf(true);
   }
@@ -45,24 +45,24 @@
     for(let i=0;i<1000;i++){const start=performance.now(),p=generator.generate(difficulty,random);times.push(performance.now()-start);assert(generator.validate(p),'Generator validation failed');const answer=inspect(p);answerPositions[answer]++;unique.add(JSON.stringify(p));holes.add(p.missing.map(id).sort().join(';'));counts[p.missing.length]=(counts[p.missing.length]||0)+1;
       const state=game.createState(p);for(let j=0;j<3;j++)if(j!==answer){assert(game.choose(state,j)==='wrong','Wrong choice accepted');assert(state.phase==='playing','Wrong choice locks play');}assert(game.choose(state,answer)==='correct'&&game.complete(state),'Correct choice cannot complete');
     }
-    assert(unique.size>200&&holes.size>=(difficulty==='easy'?9:12),'Insufficient variety');assert(answerPositions.every(n=>n>200&&n<450),'Answer position bias');
+    assert(unique.size>200&&holes.size>=(difficulty==='easy'?9:12),'Insufficient variety');assert(difficulty==='easy'?counts[2]>0&&counts[3]>0&&counts[4]>0&&counts[5]>0:!counts[2]&&!counts[3]&&counts[4]>0&&counts[5]>0,'Unexpected difficulty mix');assert(answerPositions.every(n=>n>200&&n<450),'Answer position bias');
     times.sort((a,b)=>a-b);statistics[difficulty]={puzzles:1000,uniquePuzzles:unique.size,uniqueHoles:holes.size,answerPositions,missingCounts:counts,meanMs:times.reduce((a,b)=>a+b,0)/times.length,p95Ms:times[950],maxMs:times.at(-1)};
   });
   test('投影: 等長の3軸・同じ向き・平行移動',()=>{
     const o=renderer.project({x:0,y:0,z:0});assert(o.x===0&&o.y===0,'Origin');const axes=[{x:1,y:0,z:0},{x:0,y:1,z:0},{x:0,y:0,z:1}].map(renderer.project);for(const a of axes)assert(Math.abs(Math.hypot(a.x,a.y)-Math.sqrt(1200))<1e-8,'Unequal edges');assert(axes[0].x===30&&axes[1].x===-30&&axes[2].y<0,'Axis directions');const p=renderer.project({x:2,y:1,z:2}),shift=renderer.project({x:1,y:2,z:0}),sum=renderer.project({x:3,y:3,z:2});assert(Math.abs(sum.x-p.x-shift.x)<1e-8&&Math.abs(sum.y-p.y-shift.y)<1e-8,'Translation changes shape');
   });
   test('完全な立方体: 共有面を除去し、表面と重なり順が正しい',()=>{
-    const full=generator.fullCube(3);assert(renderer.faces(full).length===27,'Internal or missing faces');assert(checkImage(full).size===54,'Complete silhouette');const faces=renderer.faces(full);assert(faces.every((f,i)=>!i||f.cell.x+f.cell.y+f.cell.z>=faces[i-1].cell.x+faces[i-1].cell.y+faces[i-1].cell.z),'Not back-to-front');
+    for(const size of [3,4]){const full=generator.fullCube(size);assert(renderer.faces(full).length===3*size*size,'Internal or missing faces');assert(checkImage(full).size===6*size*size,'Complete silhouette');const faces=renderer.faces(full);assert(faces.every((f,i)=>!i||f.cell.x+f.cell.y+f.cell.z>=faces[i-1].cell.x+faces[i-1].cell.y+faces[i-1].cell.z),'Not back-to-front');}
   });
   test('穴の内側の面と完成後の面が実データに対応',()=>{
-    const p=generator.generate('hard',seeded(11)),hole=checkImage(p.remaining),complete=checkImage([...p.remaining,...p.missing]);assert(renderer.faces(p.remaining).some(f=>f.cell[f.axis]+1<p.size),'No inner cavity wall');assert(complete.size===54&&hole.size!==0,'Completion is incomplete');assert([...hole].some(([k,f])=>complete.get(k)?.owner!==f.owner),'Hole is only decorative');
+    const p=generator.generate('hard',seeded(11)),hole=checkImage(p.remaining),complete=checkImage([...p.remaining,...p.missing]);assert(renderer.faces(p.remaining).some(f=>f.cell[f.axis]+1<p.size),'No inner cavity wall');assert(complete.size===6*p.size*p.size&&hole.size!==0,'Completion is incomplete');assert([...hole].some(([k,f])=>complete.get(k)?.owner!==f.owner),'Hole is only decorative');
   });
   test('完全に隠れる候補ボクセルを拒否',()=>{
     const p=structuredClone(generator.generate('hard',seeded(27))),hidden=[{x:0,y:0,z:0},{x:1,y:0,z:0},{x:1,y:1,z:0},{x:1,y:1,z:1}];assert(!renderer.allVisible(hidden),'Hidden back voxel considered visible');p.options[0]=hidden;assert(!generator.validate(p),'Hidden candidate accepted');
   });
   test('不正な穴・サイズ・重複・同一候補を拒否',()=>{
     const original=generator.generate('easy',seeded(14));for(const change of [p=>p.size=4,p=>p.missing.push(p.missing[0]),p=>p.remaining.pop(),p=>p.options[1]=p.options[0],p=>p.options.pop(),p=>p.options[0][0].x=9]){const p=structuredClone(original);change(p);assert(!generator.validate(p),'Malformed puzzle accepted');}
-    assert(!generator.visibleMissing(3,[{x:0,y:0,z:0}]),'Hidden back corner accepted');assert(!generator.validate(null),'Null accepted');
+    assert(!generator.visibleMissing(3,[{x:0,y:0,z:0}]),'Hidden back corner accepted');assert(!generator.visibleMissing(4,[{x:0,y:0,z:0}]),'Hidden 4x4 back corner accepted');const hard=structuredClone(generator.generate('hard',seeded(73)));for(const change of [p=>p.size=3,p=>p.remaining.pop(),p=>p.missing.push(p.missing[0])]){const p=structuredClone(hard);change(p);assert(!generator.validate(p),'Malformed hard cube accepted');}assert(!generator.validate(null),'Null accepted');
   });
   test('不正解は何度でも再挑戦、正解以外では完成しない',()=>{
     const p=generator.generate('hard',seeded(43)),state=game.createState(p),wrong=p.options.findIndex(piece=>!fits(p,piece));for(let i=0;i<20;i++){assert(game.choose(state,wrong)==='wrong'&&state.phase==='playing','Retry blocked');assert(!game.complete(state),'Wrong choice completed');}for(const index of [-1,3,.5,null])assert(game.choose(state,index)==='ignored','Invalid choice accepted');assert(state.puzzle===p,'Retry changed puzzle');

@@ -44,16 +44,16 @@
     return missing.every(c=>visible.has(key(c)))&&connected(complete.filter(c=>!removed.has(key(c))));
   }
   function validate(puzzle) {
-    if(!puzzle||puzzle.size!==3||!['easy','hard'].includes(puzzle.difficulty)||!Array.isArray(puzzle.missing)||!Array.isArray(puzzle.remaining)||!Array.isArray(puzzle.options)||puzzle.options.length!==3)return false;
+    if(!puzzle||puzzle.size!==(puzzle.difficulty==='hard'?4:3)||!['easy','hard'].includes(puzzle.difficulty)||!Array.isArray(puzzle.missing)||!Array.isArray(puzzle.remaining)||!Array.isArray(puzzle.options)||puzzle.options.length!==3)return false;
     const {size,missing,remaining,options}=puzzle,inside=c=>coordinateValid(c)&&[c.x,c.y,c.z].every(n=>n>=0&&n<size);
     if(!missing.every(inside)||!remaining.every(inside)||!connected(missing)||!connected(remaining))return false;
-    const count=missing.length;if(puzzle.difficulty==='easy'?(count<2||count>3):(count<3||count>5))return false;
+    const count=missing.length;if(puzzle.difficulty==='easy'?(count<2||count>5):(count<4||count>5))return false;
     if(puzzle.difficulty==='hard'&&['x','y','z'].filter(a=>new Set(missing.map(c=>c[a])).size>1).length<2)return false;
     const all=[...missing,...remaining];if(all.length!==size**3||new Set(all.map(key)).size!==size**3||!visibleMissing(size,missing))return false;
     if(!options.every(cells=>Array.isArray(cells)&&cells.length>=2&&cells.length<=5&&cells.every(inside)&&connected(cells)&&signature(cells)===cells.map(key).join(';')&&renderer.allVisible(cells)))return false;
     if(options.filter(piece=>fits(puzzle,piece)).length!==1)return false;
     const rotations=options.map(rotationSignature);if(new Set(rotations).size!==3)return false;
-    const threshold=puzzle.difficulty==='easy'?.26:.14;
+    const threshold=puzzle.difficulty==='easy'&&count<=3?.26:.14;
     for(let i=0;i<3;i++)for(let j=i+1;j<3;j++)if(renderer.difference(options[i],options[j])<threshold)return false;
     return true;
   }
@@ -82,11 +82,11 @@
   function randomIndex(length,random) {const value=Number(random());return Math.min(length-1,Math.max(0,Math.floor((Number.isFinite(value)?value:0)*length)));}
   function shuffled(array,random) {const result=[...array];for(let i=result.length-1;i>0;i--){const j=randomIndex(i+1,random);[result[i],result[j]]=[result[j],result[i]];}return result;}
   function makeMissing(difficulty,random) {
-    const size=3,count=(difficulty==='hard'?3:2)+randomIndex(difficulty==='hard'?3:2,random);
-    const missing=[{x:2,y:2,z:2}],removed=new Set(missing.map(key));
+    const size=difficulty==='hard'?4:3,count=(difficulty==='hard'?4:2)+randomIndex(difficulty==='hard'?2:4,random);
+    const edge=size-1,missing=[{x:edge,y:edge,z:edge}],removed=new Set(missing.map(key));
     const available=fullCube(size);
     while(missing.length<count) {
-      const choices=available.filter(c=>!removed.has(key(c))&&(c.x===2||c.y===2||c.z===2)&&['x','y','z'].every(axis=>c[axis]===2||removed.has(key({...c,[axis]:c[axis]+1}))));
+      const choices=available.filter(c=>!removed.has(key(c))&&(c.x===edge||c.y===edge||c.z===edge)&&['x','y','z'].every(axis=>c[axis]===edge||removed.has(key({...c,[axis]:c[axis]+1}))));
       if(!choices.length)return null;
       const chosen=choices[randomIndex(choices.length,random)];missing.push(chosen);removed.add(key(chosen));
     }
@@ -94,9 +94,9 @@
     return missing;
   }
   function assemble(difficulty,missing,random) {
-    const correct=normalize(missing),options=[correct],forms=new Set([rotationSignature(correct)]),threshold=difficulty==='easy'?.26:.14;
-    let choices=shuffled(candidates().filter(p=>difficulty==='hard'?Math.abs(p.length-correct.length)<=1:p.length<=4),random);
-    if(difficulty==='hard')choices.sort((a,b)=>Math.abs(a.length-correct.length)-Math.abs(b.length-correct.length));
+    const size=difficulty==='hard'?4:3,correct=normalize(missing),options=[correct],forms=new Set([rotationSignature(correct)]),threshold=difficulty==='easy'&&missing.length<=3?.26:.14;
+    let choices=shuffled(candidates().filter(p=>difficulty==='hard'||correct.length>=4?Math.abs(p.length-correct.length)<=1:p.length<=4),random);
+    if(difficulty==='hard'||correct.length>=4)choices.sort((a,b)=>Math.abs(a.length-correct.length)-Math.abs(b.length-correct.length));
     for(const candidate of choices) {
       const form=rotationSignature(candidate);
       if(forms.has(form)||options.some(p=>renderer.difference(p,candidate)<threshold))continue;
@@ -104,7 +104,7 @@
     }
     if(options.length!==3)return null;
     const removed=new Set(missing.map(key));
-    return {size:3,difficulty,missing,remaining:fullCube(3).filter(c=>!removed.has(key(c))),options:shuffled(options,random)};
+    return {size,difficulty,missing,remaining:fullCube(size).filter(c=>!removed.has(key(c))),options:shuffled(options,random)};
   }
   function generate(difficulty='easy',random=Math.random) {
     difficulty=difficulty==='hard'?'hard':'easy';
@@ -113,7 +113,7 @@
       const puzzle=assemble(difficulty,missing,random);if(puzzle&&validate(puzzle))return puzzle;
     }
     // A connected, open three-axis corner with a safe deterministic candidate set.
-    const missing=difficulty==='hard'?[{x:2,y:2,z:2},{x:1,y:2,z:2},{x:2,y:1,z:2},{x:2,y:2,z:1}]:[{x:2,y:2,z:2},{x:1,y:2,z:2}];
+    const missing=difficulty==='hard'?[{x:3,y:3,z:3},{x:2,y:3,z:3},{x:3,y:2,z:3},{x:3,y:3,z:2}]:[{x:2,y:2,z:2},{x:1,y:2,z:2}];
     const puzzle=assemble(difficulty,missing,()=>.37);
     if(!validate(puzzle))throw new Error('Invalid cube fallback');
     return puzzle;
