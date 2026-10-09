@@ -31,7 +31,10 @@ window.CubeGenerator={...originalCubeGenerator,generate:(...args)=>{window.testG
         await page.setViewportSize(viewport);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
         for(const locator of [scene,page.locator('.toolbar h1'),page.locator('#reset'),...await choices.all()]){const bounds=await locator.boundingBox();assert.ok(bounds.x>=0&&bounds.x+bounds.width<=viewport.width+1);}
         for(const button of await choices.all()){const bounds=await button.boundingBox();assert.ok(bounds.width>=88&&bounds.height>=110);assert.ok(await button.getAttribute('aria-label'));assert.ok(await button.getAttribute('aria-describedby'));}
-        const scales=await choices.locator('.voxel-piece').evaluateAll(elements=>elements.map(el=>el.getScreenCTM().a));assert.ok(scales.every(s=>Math.abs(s-scales[0])<1e-7),'Unequal candidate scale');
+        const projections=await choices.locator('.voxel-piece').evaluateAll(elements=>elements.map(el=>{const svg=el.ownerSVGElement,box=svg.getBoundingClientRect(),view=svg.viewBox.baseVal;return{scale:el.getScreenCTM().a,viewBox:svg.getAttribute('viewBox'),width:view.width,expected:Math.min(box.width/view.width,box.height/view.height)};}));
+        // CSS grid distributes fractions in 1/64px units. Compare one shared
+        // voxel/viewBox scale while allowing only that viewport rounding error.
+        for(const projection of projections){assert.equal(projection.viewBox,projections[0].viewBox);assert.ok(Math.abs(projection.scale-projection.expected)<1e-7,'Unexpected SVG scale');assert.ok(Math.abs(projection.scale-projections[0].scale)*projection.width<=1/64+1e-6,'Unequal candidate scale beyond CSS rounding');}
       }
       await page.setViewportSize({width:320,height:568});assert.equal(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight),true,'Short portrait layout');
       const initial=await snapshot(),correct=await answer(),wrong=(correct+1)%3;assert.equal(initial.puzzle.size,mode==='hard'?4:3);
