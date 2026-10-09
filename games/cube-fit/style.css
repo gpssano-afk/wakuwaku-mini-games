@@ -1,0 +1,42 @@
+.cube-screen { max-width: 580px; margin: 0 auto; padding: max(12px, env(safe-area-inset-top)) 12px max(16px, env(safe-area-inset-bottom)); }
+.toolbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.toolbar h1 { font-size: clamp(1rem, 4.4vw, 1.375rem); margin: 0; text-align: center; }
+.icon-button { display: grid; place-items: center; flex: 0 0 48px; width: 48px; height: 48px; border: 0; border-radius: 17px; background: #fff; color: var(--blue); cursor: pointer; }
+.icon-button svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round; }
+.stage-meta { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 12px 0 8px; }
+.difficulty-chip { padding: 7px 14px; min-height: 44px; border-radius: 100px; background: #e5f1eb; color: #386052; font-size: .875rem; font-weight: 700; text-decoration: none; }
+.stage-number { margin: 0; color: #58708b; font-size: .875rem; }
+.scene-wrap { position: relative; margin: 14px auto 12px; border: 2px solid #daeaf0; border-radius: 26px; background: radial-gradient(ellipse at 50% 100%, #e0e8d7, transparent 55%), #eef8fa; }
+#cube-scene { display: block; width: 100%; height: clamp(185px, 36svh, 280px); padding: 10px; }
+#cube-scene polygon { stroke-linecap: round; }
+#cube-scene.is-complete { animation: cube-glow .7s ease; }
+.choice-heading { text-align: center; margin: 0 0 10px; font-size: clamp(1rem, 4.4vw, 1.2rem); }
+.cube-choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.cube-choice { display: flex; flex-direction: column; align-items: center; width: 100%; min-width: 0; padding: 8px 4px 5px; min-height: 128px; border: 2px solid #c4dfe7; border-radius: 18px; background: #fff; box-shadow: 0 4px 0 #dce9ed; cursor: pointer; }
+.cube-choice > svg { width: 100%; height: 90px; }
+.choice-number { font-size: 1.2rem; font-weight: 800; line-height: 1.4; color: #355e7b; }
+.cube-choice:active { background: #eaf7fb; }
+.cube-choice.is-wrong { animation: choice-wiggle .3s ease; border-color: #dfa568; }
+.cube-choice.is-selected { border-color: #65a790; background: #edf8f1; }
+.cube-choice:disabled { cursor: default; color: inherit; opacity: 1; }
+.in-flight { visibility: hidden; }
+.flying-piece { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 20; pointer-events: none; }
+.hint { margin: 12px 0 0; text-align: center; min-height: 1.6em; font-size: .875rem; color: #46647b; font-weight: 700; }
+.clear-overlay { position: absolute; inset: 0; display: grid; place-items: center; padding: 12px; border-radius: 24px; background: rgb(237 246 252 / .6); z-index: 3; }
+[hidden] { display: none !important; }
+.clear-card { width: min(100%, 290px); border: 2px solid #f4e3b8; border-radius: 24px; padding: 16px; text-align: center; background: #fffae9; box-shadow: 0 12px 28px rgb(44 70 98 / .13); }
+.clear-card h2 { margin: 0 0 12px; font-size: 2rem; }
+#next.next-button { width: 100%; min-height: 60px; border: 3px solid #995000; border-radius: 18px; color: #402000; background: #ffcc00; font-size: 1.5rem; font-weight: 800; box-shadow: 0 4px 0 #995000; cursor: pointer; }
+#next:active { background: #ffb300; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@keyframes choice-wiggle { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+@keyframes cube-glow { 50% { filter: brightness(1.18); } }
+@media (max-height: 650px) {
+  .cube-screen { padding-top: 8px; padding-bottom: 10px; }
+  .stage-meta { margin-top: 8px; }
+  .scene-wrap { margin: 10px auto; }
+  #cube-scene { height: 190px; padding: 6px; }
+  .cube-choice { min-height: 114px; padding-top: 6px; }
+  .cube-choice > svg { height: 78px; }
+  .hint { margin-top: 8px; }
+}

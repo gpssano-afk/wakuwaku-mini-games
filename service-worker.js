@@ -1,6 +1,6 @@
 "use strict";
 // Increment VERSION when publishing changes to the precached game files.
-const VERSION = "v9";
+const VERSION = "v10";
 const ROOT = new URL("./", self.location.href);
 // Include the scope so two apps hosted on one origin never delete each other's cache.
 const PREFIX = `wakuwaku:${ROOT.pathname}:`;
@@ -14,6 +14,8 @@ const FILES = [
   "games/block-fit/game.js", "games/block-fit/generator.js",
   "games/rail-connect/index.html", "games/rail-connect/difficulty.html", "games/rail-connect/style.css",
   "games/rail-connect/game.js", "games/rail-connect/generator.js",
+  "games/cube-fit/index.html", "games/cube-fit/difficulty.html", "games/cube-fit/style.css",
+  "games/cube-fit/renderer.js", "games/cube-fit/generator.js", "games/cube-fit/game.js",
 ].map(path => new URL(path, ROOT).href);
 
 self.addEventListener("install", event => {
