@@ -94,6 +94,21 @@
     const tiles=p.tiles.map(t=>({...t}));tiles[0].rotation=4;assert(!rules.isValid({...p,tiles}),"Invalid rotation accepted");
     assert(!rules.isValid({...p,tiles:solveByRotating(p).tiles}),"Initially solved accepted");
   });
+  test("10問の盤面サイズは段階的に増加、必ず正解経路あり",()=>{
+    for (const difficulty of ["easy","hard"]) {
+      let previous=0;
+      for(let question=1;question<=10;question++){
+        const expected=(difficulty==="easy"?3:4)+(question>=6?1:0);
+        for(const random of [randomFromSeed(3000+question),()=>0,()=>1-Number.EPSILON]){
+          const puzzle=rules.generate(difficulty,random,question);
+          assert(puzzle.rows===expected&&puzzle.cols===expected&&rules.isValid(puzzle),"Size/validity mismatch");
+          const solved=puzzle.tiles.map(tile=>({...tile,rotation:tile.solutionRotation}));
+          assert(rules.trace(puzzle,solved)?.length===puzzle.solution.length,"Broken scheduled solution");
+        }
+        assert(expected>=previous,"Shrinking rails");previous=expected;
+      }
+    }
+  });
   window.railTestResults={passed:results.every(r=>r.passed),results,statistics};
   const output=document.getElementById("rail-results");if(output)output.textContent=results.map(r=>`${r.passed?"PASS":"FAIL"} ${r.name}${r.error?`: ${r.error}`:""}`).join("\n")+`\n\n${results.filter(r=>r.passed).length} / ${results.length} PASS`;
 })();
