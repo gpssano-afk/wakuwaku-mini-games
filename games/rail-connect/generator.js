@@ -48,6 +48,8 @@
     return changed >= 2 && (puzzle.difficulty === "easy" ? path.length >= 5 && path.length <= 7 && curves === 1 : path.length >= 2 * puzzle.rows + 2 && curves >= 4);
   }
   const safeHardPath = [0,1,5,4,8,9,10,6,7,11,15];
+  const safeHardPath5 = [0,1,6,5,10,11,12,7,8,13,14,19,24];
+  const safeEasyPath4 = [0,1,2,3,7,11];
   function build(size, path, difficulty, pick) {
     const tiles = Array.from({length:size * size}, () => ({type:"empty",rotation:0,solutionRotation:0}));
     path.forEach((index,i) => {
@@ -75,10 +77,16 @@
     }
     return {difficulty,rows:size,cols:size,start:path[0],goal:path.at(-1),tiles,solution:path};
   }
-  function generate(difficulty = "easy", random = Math.random) {
+  // Within a set the grid never shrinks; legacy calls stay randomized.
+  function sizeForQuestion(difficulty,question) {
+    if (!Number.isInteger(question) || question < 1 || question > 10) return null;
+    return (difficulty === "hard" ? 4 : 3) + (question >= 6 ? 1 : 0);
+  }
+
+  function generate(difficulty = "easy", random = Math.random, question = null) {
     difficulty = difficulty === "hard" ? "hard" : "easy";
     const pick = n => { const r = random(); return Math.floor(Math.max(0,Math.min(1 - Number.EPSILON,Number.isFinite(r) ? r : 0)) * n); };
-    let size = difficulty === "easy" ? 3 + pick(2) : 4 + pick(2), path;
+    let size = sizeForQuestion(difficulty, question) ?? (difficulty === "easy" ? 3 + pick(2) : 4 + pick(2)), path;
     if (difficulty === "easy") {
       const row = size === 4 ? pick(2) : 0;
       path = Array.from({length:size},(_,col) => row * size + col);
@@ -96,14 +104,14 @@
         const curves = candidate.slice(1,-1).filter((n,i) => (direction(n,candidate[i],size)+2)%4 !== direction(n,candidate[i+2],size)).length;
         if (candidate.length === target && curves >= 4) path = candidate;
       }
-      if (!path) { size = 4; path = [...safeHardPath]; }
+      if (!path) path = size === 5 ? [...safeHardPath5] : [...safeHardPath];
     }
     const flipRows = pick(2), flipCols = pick(2), transpose = pick(2);
     path = path.map(n => { let row = Math.floor(n/size), col = n%size; if (flipRows) row=size-1-row; if(flipCols)col=size-1-col; if(transpose)[row,col]=[col,row]; return row*size+col; });
     let puzzle = build(size,path,difficulty,pick);
-    if (!isValid(puzzle)) puzzle = difficulty === "hard" ? build(4,[...safeHardPath],difficulty,()=>0) : build(3,[0,1,2,5,8],difficulty,()=>0);
+    if (!isValid(puzzle)) puzzle = difficulty === "hard" ? build(size,size === 5 ? [...safeHardPath5] : [...safeHardPath],difficulty,()=>0) : build(size,size === 4 ? [...safeEasyPath4] : [0,1,2,5,8],difficulty,()=>0);
     puzzle.tiles.forEach(Object.freeze); Object.freeze(puzzle.tiles); Object.freeze(puzzle.solution);
     return Object.freeze(puzzle);
   }
-  window.RailGenerator = Object.freeze({generate,isValid,ports,trace,direction});
+  window.RailGenerator = Object.freeze({generate,isValid,ports,trace,direction,sizeForQuestion});
 })();
