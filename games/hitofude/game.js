@@ -147,7 +147,7 @@
   const hint = document.getElementById("hint");
   const announcement = document.getElementById("announcement");
   let number = 1;
-  let stage = generator.generate(difficulty);
+  let stage = generator.generate(difficulty, Math.random, number);
   let state;
   let activePointer = null;
   let wire;
@@ -366,14 +366,14 @@
       return;
     }
     if (!state.cleared || number >= SET_SIZE) return;
-    stage = generator.generate(difficulty);
     number++;
+    stage = generator.generate(difficulty, Math.random, number);
     loadStage();
     board.focus({ preventScroll: true });
   });
   replayButton.addEventListener("click", () => {
     number = 1;
-    stage = generator.generate(difficulty);
+    stage = generator.generate(difficulty, Math.random, number);
     loadStage();
     board.focus({ preventScroll: true });
   });
