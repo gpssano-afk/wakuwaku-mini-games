@@ -81,3 +81,63 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--blue); outline-
 @media (max-width: 360px) {
   .game-header .toolbar .reset-button { min-width: 100px; gap: 3px; padding: 0 8px; }
 }
+
+/* Ten-question sets: shared between the two mini-games. */
+.set-progress {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 4px;
+  width: min(85%, 340px);
+  margin: 10px auto 2px;
+}
+.set-progress-step { height: 11px; border-radius: 5px; background: #dbe3ea; }
+.set-progress-step.is-done { background: #e9ac37; }
+.set-complete[hidden] { display: none !important; }
+.set-complete {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: max(20px, env(safe-area-inset-top)) 18px max(20px, env(safe-area-inset-bottom));
+  background: rgb(39 60 79 / .57);
+}
+.set-complete-card {
+  width: min(100%, 380px);
+  max-height: 100%;
+  overflow-y: auto;
+  border-radius: 28px;
+  border: 3px solid #f0d68e;
+  padding: 26px 20px 24px;
+  text-align: center;
+  background: #fffaf0;
+  box-shadow: 0 12px 40px rgb(17 34 51 / .22);
+}
+.set-complete-trophy { font-size: 3.25rem; line-height: 1.3; }
+.set-complete-card h2 { font-size: clamp(1.55rem, 6.5vw, 2rem); margin: 10px 0 4px; }
+.set-complete-card p { font-size: 1.1rem; font-weight: 700; margin-bottom: 24px; }
+.set-again {
+  display: block;
+  width: 100%;
+  min-height: 60px;
+  border: 3px solid #995000;
+  border-radius: 18px;
+  background: #ffcc00;
+  color: #402000;
+  font-size: clamp(1rem, 4.6vw, 1.2rem);
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #995000;
+}
+.set-again:active { background: #ffb300; box-shadow: 0 1px 0 #995000; }
+.set-home {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 17px;
+  min-height: 48px;
+  font-weight: 800;
+  color: #315778;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
