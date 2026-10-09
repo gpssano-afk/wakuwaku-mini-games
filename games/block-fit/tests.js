@@ -104,6 +104,20 @@
     assert(!generator.isValid({...puzzle,pieces:[...puzzle.pieces,puzzle.pieces[0]]}),"Duplicate piece accepted");
     assert(!generator.connected([{row:0,col:0},{row:1,col:1}]),"Diagonal piece accepted");
   });
+  test("10問では盤面が小→大、フォールバック時もサイズ固定", () => {
+    for (const difficulty of ["easy", "hard"]) {
+      let previous = 0;
+      for (let question = 1; question <= 10; question++) {
+        const expected = (difficulty === "easy" ? 3 : 4) + (question >= 6 ? 1 : 0);
+        for (const random of [randomFromSeed(2000 + question), () => 0, () => 1 - Number.EPSILON]) {
+          const puzzle = generator.generate(difficulty, random, question);
+          assert(puzzle.rows === expected && puzzle.cols === expected && generator.isValid(puzzle), "Scheduled board size/validity mismatch");
+          independentCheck(puzzle);
+        }
+        assert(expected >= previous, "Size shrank"); previous = expected;
+      }
+    }
+  });
   window.blockTestResults={passed:results.every(r=>r.passed),results,statistics};
   const output=document.getElementById("block-results");
   if(output)output.textContent=results.map(r=>`${r.passed?"PASS":"FAIL"} ${r.name}${r.error?`: ${r.error}`:""}`).join("\n")+`\n\n${results.filter(r=>r.passed).length} / ${results.length} PASS`;
