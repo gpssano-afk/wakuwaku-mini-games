@@ -57,6 +57,16 @@
         [{row:2,col:1},{row:2,col:2},{row:2,col:3},{row:3,col:3}],
       ];
   }
+  function safeHardRegions5() {
+    // Exact 5x5 cover, two non-rectangular connected shapes.
+    return [
+      [{row:0,col:0},{row:0,col:1},{row:1,col:0}],
+      [{row:0,col:2},{row:0,col:3},{row:0,col:4},
+       {row:1,col:1},{row:1,col:2},{row:1,col:3},{row:1,col:4}],
+      rectangle(2,0,3,2),
+      rectangle(2,2,3,3),
+    ];
+  }
   function makePieces(regions) {
     return regions.map((cells, i) => {
       const b = bounds(cells);
@@ -64,13 +74,19 @@
         .sort((a, b) => a.row - b.row || a.col - b.col), solution: { row: b.row, col: b.col } };
     });
   }
-  function generate(difficulty = "easy", random = Math.random) {
+  // Within a set the grid never shrinks; legacy calls stay randomized.
+  function sizeForQuestion(difficulty,question) {
+    if (!Number.isInteger(question) || question < 1 || question > 10) return null;
+    return (difficulty === "hard" ? 4 : 3) + (question >= 6 ? 1 : 0);
+  }
+
+  function generate(difficulty = "easy", random = Math.random, question = null) {
     difficulty = difficulty === "hard" ? "hard" : "easy";
     const pick = n => {
       const value = random();
       return Math.floor(Math.max(0, Math.min(1 - Number.EPSILON, Number.isFinite(value) ? value : 0)) * n);
     };
-    const size = difficulty === "easy" ? 3 + pick(2) : 4 + pick(2);
+    const size = sizeForQuestion(difficulty, question) ?? (difficulty === "easy" ? 3 + pick(2) : 4 + pick(2));
     let regions;
     if (difficulty === "easy") {
       regions = split(rectangle(0, 0, size, size), pick);
@@ -101,7 +117,7 @@
         regions[from] = donor; regions[to] = receiver;
       }
       const complex = regions.filter(cells => { const b = bounds(cells); return cells.length < (b.bottom - b.row + 1) * (b.right - b.col + 1); }).length;
-      if (complex < 2) regions = safeHardRegions();
+      if (complex < 2) regions = size === 5 ? safeHardRegions5() : safeHardRegions();
     }
     const boardSize = regions.reduce((n, cells) => n + cells.length, 0) === 16 ? 4 : size;
     // Reflections vary the orientations before play; players never rotate pieces.
@@ -113,8 +129,8 @@
     let puzzle = { difficulty, rows: boardSize, cols: boardSize, pieces };
     if (!isValid(puzzle)) {
       // An unexpected invalid partition also falls back to a known tiling.
-      const safeSize = difficulty === "hard" ? 4 : 3;
-      const safe = difficulty === "hard" ? safeHardRegions() : [rectangle(0,0,1,3), rectangle(1,0,2,3)];
+      const safeSize = size;
+      const safe = difficulty === "hard" ? (size === 5 ? safeHardRegions5() : safeHardRegions()) : (size === 4 ? [rectangle(0,0,2,4),rectangle(2,0,2,4)] : [rectangle(0,0,1,3), rectangle(1,0,2,3)]);
       puzzle = {difficulty, rows:safeSize, cols:safeSize, pieces:makePieces(safe)};
     }
     for (const piece of puzzle.pieces) {
@@ -123,5 +139,5 @@
     Object.freeze(puzzle.pieces);
     return Object.freeze(puzzle);
   }
-  window.BlockFitGenerator = Object.freeze({ generate, isValid, connected });
+  window.BlockFitGenerator = Object.freeze({ generate, isValid, connected, sizeForQuestion });
 })();
