@@ -148,7 +148,7 @@
     if (!changed) { hint.textContent = "ここには おけないよ。べつのところへ！"; announcement.textContent = hint.textContent; }
   }
   document.getElementById("reset").addEventListener("click", () => { state = createState(puzzle); announcement.textContent = ""; render(); });
-  function newPuzzle() { cancelDrag(); puzzle = window.BlockFitGenerator.generate(difficulty); state = createState(puzzle); number++; announcement.textContent = ""; render(); }
+  function newPuzzle() { cancelDrag(); number++; puzzle = window.BlockFitGenerator.generate(difficulty, Math.random, number); state = createState(puzzle); announcement.textContent = ""; render(); }
   next.addEventListener("click", () => { if (state.cleared && number < SET_SIZE) newPuzzle(); });
   replayButton.addEventListener("click", () => { number = 0; newPuzzle(); });
   window.addEventListener("blur", cancelDrag); window.addEventListener("pagehide", cancelDrag); window.addEventListener("resize", cancelDrag);
