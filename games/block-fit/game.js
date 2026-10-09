@@ -42,6 +42,24 @@
   const labels = ["オレンジ", "みずいろ", "みどり", "むらさき", "きいろ"];
   const NS = "http://www.w3.org/2000/svg";
   let puzzle, state, number = 0, drag = null;
+  const SET_SIZE = 10;
+  const progress = document.getElementById("set-progress");
+  const setComplete = document.getElementById("set-complete");
+  const replayButton = document.getElementById("set-play-again");
+  const progressSteps = Array.from({length:SET_SIZE}, () => {
+    const segment = document.createElement("span");
+    segment.className = "set-progress-step";
+    segment.setAttribute("aria-hidden", "true");
+    progress.append(segment);
+    return segment;
+  });
+  function drawProgress() {
+    const completed = Math.min(SET_SIZE, Math.max(0, number - 1 + (state.cleared ? 1 : 0)));
+    progressSteps.forEach((segment, i) => segment.classList.toggle("is-done", i < completed));
+    progress.setAttribute("aria-valuenow", String(completed));
+    document.getElementById("stage-number").textContent = "もんだい " + number + " / " + SET_SIZE;
+  }
+
   document.getElementById("difficulty-label").textContent = difficulty === "hard" ? "むずかしい" : "かんたん";
   function dimensions(piece) { return {rows:Math.max(...piece.cells.map(c => c.row)) + 1,cols:Math.max(...piece.cells.map(c => c.col)) + 1}; }
   function art(piece) {
@@ -83,11 +101,16 @@
     }
     board.dataset.question = String(number); board.dataset.placed = String(state.placements.size); board.dataset.cleared = String(state.cleared);
     board.dataset.difficulty = difficulty;
-    document.getElementById("stage-number").textContent = `もんだい ${number}`;
+    drawProgress();
     document.getElementById("tray-title").hidden = !tray.children.length;
     hint.textContent = state.cleared ? "ぴったり はまったね！" : "ブロックを もって はめよう！";
-    overlay.hidden = !state.cleared;
-    if (state.cleared) { announcement.textContent = "できた！"; next.focus({preventScroll:true}); }
+    const finalClear = state.cleared && number === SET_SIZE;
+    overlay.hidden = !state.cleared || finalClear;
+    setComplete.hidden = !finalClear;
+    if (state.cleared) {
+      announcement.textContent = finalClear ? "ぜんぶ できた！ 10もん クリア！" : "できた！";
+      (finalClear ? replayButton : next).focus({preventScroll:true});
+    }
   }
   function startDrag(event, piece, element) {
     if (drag || state.cleared || event.isPrimary === false || event.button !== 0) return;
@@ -126,7 +149,8 @@
   }
   document.getElementById("reset").addEventListener("click", () => { state = createState(puzzle); announcement.textContent = ""; render(); });
   function newPuzzle() { cancelDrag(); puzzle = window.BlockFitGenerator.generate(difficulty); state = createState(puzzle); number++; announcement.textContent = ""; render(); }
-  next.addEventListener("click", () => { if (state.cleared) newPuzzle(); });
+  next.addEventListener("click", () => { if (state.cleared && number < SET_SIZE) newPuzzle(); });
+  replayButton.addEventListener("click", () => { number = 0; newPuzzle(); });
   window.addEventListener("blur", cancelDrag); window.addEventListener("pagehide", cancelDrag); window.addEventListener("resize", cancelDrag);
   newPuzzle();
 })();
