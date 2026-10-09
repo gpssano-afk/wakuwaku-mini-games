@@ -97,7 +97,7 @@
     stopTrain(); state=createState(puzzle); overlay.hidden=true; finished.hidden=true; announcement.textContent="";
     hint.textContent="レールを タップして つなごう！"; render();
   }
-  function newPuzzle() { stopTrain(); puzzle=rules.generate(difficulty); number++; reset(); }
+  function newPuzzle() { stopTrain(); number++; puzzle=rules.generate(difficulty, Math.random, number); reset(); }
   next.addEventListener("click",()=>{if(state.phase==="cleared"&&number<SET_SIZE)newPuzzle();});
   replay.addEventListener("click",()=>{if(state.phase==="cleared"&&number===SET_SIZE){number=0;completed=0;newPuzzle();}});
   document.getElementById("reset").addEventListener("click",reset);
