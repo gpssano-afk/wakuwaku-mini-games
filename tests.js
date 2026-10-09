@@ -266,6 +266,20 @@
         p95Ms: times[Math.floor(times.length * .95)], maxMs: times[times.length - 1] };
     });
   }
+  test("10問の盤面サイズは前半小→後半大、やりなおし・再挑戦で戻る", () => {
+    for (const difficulty of ["easy", "hard"]) {
+      let previous = 0;
+      for (let question = 1; question <= 10; question++) {
+        const expected = (difficulty === "easy" ? 3 : 4) + (question >= 6 ? 1 : 0);
+        for (const random of [randomFromSeed(1000 + question), () => 0, () => .999999]) {
+          const stage = generator.generate(difficulty, random, question);
+          assert(stage.rows === expected && stage.cols === expected && generator.isValid(stage), "Scheduled stage incorrect");
+        }
+        assert(expected >= previous, "Size shrank"); previous = expected;
+      }
+      assert(generator.generate(difficulty, () => 0, 1).rows === (difficulty === "easy" ? 3 : 4), "New set does not restart small");
+    }
+  });
   window.testResults = { passed: results.every(result => result.passed), results, statistics };
   document.getElementById("results").textContent = results.map(result =>
     `${result.passed ? "PASS" : "FAIL"} ${result.name}${result.error ? `: ${result.error}` : ""}`
