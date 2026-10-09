@@ -154,6 +154,24 @@
   let tipMarker;
   const bulbElements = new Map();
   const NS = "http://www.w3.org/2000/svg";
+  const SET_SIZE = 10;
+  const progress = document.getElementById("set-progress");
+  const setComplete = document.getElementById("set-complete");
+  const replayButton = document.getElementById("set-play-again");
+  const progressSteps = Array.from({length:SET_SIZE}, () => {
+    const segment = document.createElement("span");
+    segment.className = "set-progress-step";
+    segment.setAttribute("aria-hidden", "true");
+    progress.append(segment);
+    return segment;
+  });
+  function drawProgress() {
+    const completed = Math.min(SET_SIZE, Math.max(0, number - 1 + (state.cleared ? 1 : 0)));
+    progressSteps.forEach((segment, i) => segment.classList.toggle("is-done", i < completed));
+    progress.setAttribute("aria-valuenow", String(completed));
+    document.getElementById("stage-number").textContent = "もんだい " + number + " / " + SET_SIZE;
+  }
+
 
   function svg(tag, attributes = {}) {
     const element = document.createElementNS(NS, tag);
@@ -212,8 +230,8 @@
     board.append(wire, tipMarker);
     state.stage.bulbs.forEach(drawBulb);
     drawBattery(state.stage.battery);
-    document.getElementById("stage-number").textContent = `もんだい ${number}`;
     overlay.hidden = true;
+    setComplete.hidden = true;
     delete overlay.dataset.result;
     board.dataset.continuation = "unchecked";
     announcement.textContent = "";
@@ -221,6 +239,7 @@
   }
 
   function render() {
+    drawProgress();
     wire.setAttribute("d", state.path.map((cell, i) => {
       const point = center(cell);
       return `${i ? "L" : "M"}${point.x} ${point.y}`;
@@ -245,12 +264,18 @@
   }
 
   function finishTurn() {
-    if (state.failed) return;
+    if (state.failed || !setComplete.hidden) return;
     const result = checkContinuation(state);
     board.dataset.continuation = result;
     if (result === "impossible") state.failed = true;
     render();
     if (!state.cleared && !state.failed) return;
+    if (state.cleared && number === SET_SIZE) {
+      setComplete.hidden = false;
+      announcement.textContent = "ぜんぶ できた！ 10もん クリア！";
+      replayButton.focus({ preventScroll: true });
+      return;
+    }
     title.textContent = state.failed ? "まちがえちゃった！" : "できた！";
     nextButton.textContent = state.failed ? "もういちど" : "つぎへ";
     overlay.dataset.result = state.failed ? "failed" : "cleared";
@@ -340,9 +365,15 @@
       board.focus({ preventScroll: true });
       return;
     }
-    if (!state.cleared) return;
+    if (!state.cleared || number >= SET_SIZE) return;
     stage = generator.generate(difficulty);
     number++;
+    loadStage();
+    board.focus({ preventScroll: true });
+  });
+  replayButton.addEventListener("click", () => {
+    number = 1;
+    stage = generator.generate(difficulty);
     loadStage();
     board.focus({ preventScroll: true });
   });
