@@ -32,3 +32,9 @@
   .hint { margin-top: 14px; font-size: .875rem; }
   .game-note { font-size: .75rem; }
 }
+
+/* Fixed track is a visual hint; only yellow-marked tiles respond to taps. */
+.rail-tile--movable { cursor: pointer; }
+.rail-tile--movable:active { filter: brightness(.96); }
+.rail-tile--fixed { cursor: default; }
+.rail-tile--fixed .rail-art { opacity: .84; }
