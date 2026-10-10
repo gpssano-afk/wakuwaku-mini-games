@@ -38,10 +38,17 @@
     if (puzzle.difficulty === "easy" ? puzzle.rows > 4 : puzzle.rows < 4) return false;
     const allowed = ["empty","start","goal","straight","curve"];
     if (!puzzle.tiles.every(t => t && allowed.includes(t.type) && Number.isInteger(t.rotation) && t.rotation >= 0 && t.rotation < 4 &&
-        Number.isInteger(t.solutionRotation) && t.solutionRotation >= 0 && t.solutionRotation < 4)) return false;
+        Number.isInteger(t.solutionRotation) && t.solutionRotation >= 0 && t.solutionRotation < 4 && typeof t.movable === "boolean")) return false;
     if (puzzle.tiles.filter(t => t.type === "start").length !== 1 || puzzle.tiles.filter(t => t.type === "goal").length !== 1) return false;
     const solved = puzzle.tiles.map(t => ({...t,rotation:t.solutionRotation})), path = trace(puzzle, solved);
     if (!path || path.length !== puzzle.solution.length || path.some((n,i) => n !== puzzle.solution[i]) || trace(puzzle)) return false;
+    const movable = puzzle.tiles.map((tile,i) => tile.movable ? i : -1).filter(i => i >= 0);
+    const expectedMovable = puzzle.difficulty === "easy" ? (puzzle.rows === 3 ? 2 : 3) : (puzzle.rows === 4 ? 3 : 4);
+    const interior = new Set(puzzle.solution.slice(1,-1));
+    if (movable.length !== expectedMovable || movable.some(i => !interior.has(i)) ||
+        !puzzle.tiles[puzzle.solution[1]].movable || !puzzle.tiles[puzzle.solution.at(-2)].movable ||
+        puzzle.tiles.some((tile,i) => !tile.movable && ["straight","curve"].includes(tile.type) &&
+          ports(tile).slice().sort().join() !== ports(solved[i]).slice().sort().join())) return false;
     const curves = puzzle.solution.filter(n => puzzle.tiles[n].type === "curve").length;
     const changed = puzzle.solution.filter(n => ["straight","curve"].includes(puzzle.tiles[n].type) &&
       ports(puzzle.tiles[n]).slice().sort().join() !== ports(solved[n]).sort().join()).length;
@@ -51,7 +58,7 @@
   const safeHardPath5 = [0,1,6,5,10,11,12,7,8,13,14,19,24];
   const safeEasyPath4 = [0,1,2,3,7,11];
   function build(size, path, difficulty, pick) {
-    const tiles = Array.from({length:size * size}, () => ({type:"empty",rotation:0,solutionRotation:0}));
+    const tiles = Array.from({length:size * size}, () => ({type:"empty",rotation:0,solutionRotation:0,movable:false}));
     path.forEach((index,i) => {
       const before = i ? direction(index,path[i-1],size) : null;
       const after = i < path.length - 1 ? direction(index,path[i+1],size) : null;
@@ -59,21 +66,26 @@
       if (!i || i === path.length - 1) { type = !i ? "start" : "goal"; rotation = !i ? after : before; }
       else if ((before + 2) % 4 === after) { type = "straight"; rotation = before; }
       else { type = "curve"; rotation = [0,1,2,3].find(r => [r,(r+1)%4].includes(before) && [r,(r+1)%4].includes(after)); }
-      tiles[index] = {type,rotation,solutionRotation:rotation};
+      tiles[index] = {type,rotation,solutionRotation:rotation,movable:false};
     });
     const used = new Set(path), unused = tiles.map((_,i) => i).filter(i => !used.has(i));
     for (let i = unused.length - 1; i > 0; i--) { const j = pick(i + 1); [unused[i],unused[j]] = [unused[j],unused[i]]; }
     const dummyCount = difficulty === "easy" ? pick(2) : Math.max(1, Math.ceil(unused.length * .65));
-    for (const index of unused.slice(0,dummyCount)) { const rotation = pick(4); tiles[index] = {type:pick(2) ? "curve" : "straight",rotation,solutionRotation:rotation}; }
-    for (const index of path.slice(1,-1)) {
-      const tile = tiles[index];
-      const turn = difficulty === "hard" ? pick(4) : (pick(2) ? (tile.type === "straight" ? 1 : 3) : 0);
-      tile.rotation = (tile.rotation + turn) % 4;
+    for (const index of unused.slice(0,dummyCount)) { const rotation = pick(4); tiles[index] = {type:pick(2) ? "curve" : "straight",rotation,solutionRotation:rotation,movable:false}; }
+    // Fixed rails start correctly oriented and provide visual hints.
+    // Only the station-adjacent rails and a few others can rotate.
+    const candidates = path.slice(2,-2);
+    for(let i=candidates.length-1;i>0;i--){const j=pick(i+1);[candidates[i],candidates[j]]=[candidates[j],candidates[i]];}
+    const count = difficulty === "easy" ? (size === 3 ? 2 : 3) : (size === 4 ? 3 : 4);
+    const movable = [...new Set([path[1],path.at(-2),...candidates.slice(0,count-2)])];
+    for(const index of movable) {
+      const tile=tiles[index];tile.movable=true;
+      const turns = tile.type === "straight" ? 1 : 1+pick(3);
+      tile.rotation = (tile.solutionRotation+turns)%4;
     }
-    // Both fixed stations have a wrong-facing neighboring rail initially, so
-    // at least two distinct rails must be changed, even for an alternate route.
-    for (const index of [path[1],path.at(-2)]) {
-      const tile = tiles[index]; tile.rotation = (tile.solutionRotation + (tile.type === "straight" ? 1 : 2)) % 4;
+    for(const index of [path[1],path.at(-2)]) {
+      const tile=tiles[index];
+      tile.rotation = (tile.solutionRotation+(tile.type==="straight"?1:2))%4;
     }
     return {difficulty,rows:size,cols:size,start:path[0],goal:path.at(-1),tiles,solution:path};
   }
