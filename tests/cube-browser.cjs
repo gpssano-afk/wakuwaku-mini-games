@@ -27,6 +27,11 @@ window.CubeGenerator={...originalCubeGenerator,generate:(...args)=>{window.testG
     for(const mode of ['easy','hard']) {
       await page.emulateMedia({reducedMotion:'no-preference'});
       await page.locator('.game-card[href*="cube-fit"]').tap();await page.locator(`.difficulty-card[href$="difficulty=${mode}"]`).tap();await scene.waitFor();
+      assert.equal(await page.locator('#howto-overlay').isVisible(),true);
+      await page.locator('#howto-start').tap();
+      await page.locator('.howto-help').tap();
+      assert.equal(await page.locator('#howto-overlay').isVisible(),true);
+      await page.locator('#howto-start').tap();
       for(const viewport of [{width:320,height:568},{width:390,height:844},{width:430,height:932},{width:1024,height:768}]){
         await page.setViewportSize(viewport);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
         for(const locator of [scene,page.locator('.toolbar h1'),page.locator('#reset'),...await choices.all()]){const bounds=await locator.boundingBox();assert.ok(bounds.x>=0&&bounds.x+bounds.width<=viewport.width+1);}
@@ -55,10 +60,10 @@ window.CubeGenerator={...originalCubeGenerator,generate:(...args)=>{window.testG
       for(const sample of samples)assert.deepEqual(sample.cells,samples[0].cells,'Shape changed during movement');assert.equal(await page.evaluate(()=>window.completedPhase),'fitting','Success before completed cube');assert.equal((await data()).voxels,String((await puzzle()).size**3));assert.equal(await scene.locator('[data-cavity="true"]').count(),0);assert.equal(await page.locator('.flying-piece').count(),0);assert.equal(await page.locator('#set-progress').getAttribute('aria-valuenow'),'1');
       await page.locator('#clear-overlay').evaluate(el=>el.hidden=true);await page.screenshot({path:path.join(artifacts,`cube-${mode}-complete.png`),fullPage:true});await page.locator('#clear-overlay').evaluate(el=>el.hidden=false);
       await page.locator('#reset').tap();assert.deepEqual(await snapshot(),initial);assert.equal(await page.locator('#set-progress').getAttribute('aria-valuenow'),'1');
-      await choices.nth(correct).tap();assert.equal((await data()).phase,'fitting');await page.locator('a[aria-label="ホームへもどる"]').tap();await page.waitForURL('**/index.html');await page.goBack();await scene.waitFor();await page.waitForTimeout(1400);assert.equal((await data()).phase,'playing');assert.equal(await page.locator('#clear-overlay').isVisible(),false);assert.equal(await page.locator('.flying-piece').count(),0);
+      await choices.nth(correct).tap();assert.equal((await data()).phase,'fitting');await page.locator('a[aria-label="ホームへもどる"]').tap();await page.waitForURL('**/index.html');await page.goBack();await scene.waitFor();await page.locator('#howto-start').tap();await page.waitForTimeout(1400);assert.equal((await data()).phase,'playing');assert.equal(await page.locator('#clear-overlay').isVisible(),false);assert.equal(await page.locator('.flying-piece').count(),0);
       console.log(`PASS ${mode}: layout 320/390/430/tablet; wrong retries/keyboard; exact matrix movement/completion; input lock; same-puzzle reset and navigation cancel`);
       // Fresh sets, reduced motion respected. Two complete touch sets per mode.
-      await page.goto(root+`games/cube-fit/index.html?difficulty=${mode}`);await scene.waitFor();await page.emulateMedia({reducedMotion:'reduce'});
+      await page.goto(root+`games/cube-fit/index.html?difficulty=${mode}`);await scene.waitFor();await page.locator('#howto-start').tap();await page.emulateMedia({reducedMotion:'reduce'});
       for(let set=0;set<2;set++) {
         for(let number=1;number<=10;number++){
           assert.equal((await data()).question,String(number));assert.equal(await page.locator('#stage-number').textContent(),`もんだい ${number} / 10`);assert.equal(await page.locator('#set-progress').getAttribute('aria-valuenow'),String(number-1));const correct=await answer();
