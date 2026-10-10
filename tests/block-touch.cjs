@@ -73,6 +73,12 @@ window.BlockFitGenerator = {...originalGenerator, generate:(...args) => {
         await page.waitForURL('**/block-fit/difficulty.html');
         await page.locator(`.difficulty-card[href$="difficulty=${mode}"]`).tap();
         await board.waitFor();
+        assert.equal(await page.locator('#howto-overlay').isVisible(), true, 'Missing first-play guide');
+        await page.locator('#howto-start').tap();
+        assert.equal(await page.locator('#howto-overlay').isVisible(), false);
+        await page.locator('.howto-help').tap();
+        assert.equal(await page.locator('#howto-overlay').isVisible(), true);
+        await page.locator('#howto-start').tap();
         await page.evaluate(() => {
           window.testClicks = [];
           window.testPointers = new Set();
