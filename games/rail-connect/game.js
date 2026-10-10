@@ -4,7 +4,7 @@
   function createState(puzzle) { return {puzzle,tiles:puzzle.tiles.map(t=>({...t})),phase:"playing"}; }
   function rotate(state, index) {
     const tile = state.tiles[index];
-    if (state.phase !== "playing" || !tile || !["straight","curve"].includes(tile.type)) return false;
+    if (state.phase !== "playing" || !tile || !["straight","curve"].includes(tile.type) || !tile.movable) return false;
     tile.rotation = (tile.rotation + 1) % 4; return true;
   }
   window.RailConnect = Object.freeze({createState,rotate,trace:rules.trace});
@@ -34,7 +34,7 @@
     board.dataset.question=String(number); board.dataset.phase=state.phase; board.dataset.difficulty=difficulty;
     document.getElementById("stage-number").textContent=`もんだい ${number} / ${SET_SIZE}`;
     progressSteps.forEach((el,i)=>el.classList.toggle("is-done",i<completed)); progress.setAttribute("aria-valuenow",String(completed));
-    for (const el of board.children) el.disabled=state.phase!=="playing" || !["straight","curve"].includes(el.dataset.type);
+    for (const el of board.children) el.disabled=state.phase!=="playing" || !["straight","curve"].includes(el.dataset.type) || el.dataset.movable !== "true";
   }
   function render() {
     board.replaceChildren(); board.style.setProperty("--size",puzzle.cols);
@@ -42,11 +42,21 @@
     state.tiles.forEach((tile,i)=> {
       const button=document.createElement("button"); button.type="button"; button.className=`rail-tile rail-tile--${tile.type}`;
       button.dataset.index=String(i); button.dataset.type=tile.type; button.dataset.rotation=String(tile.rotation);
-      button.setAttribute("aria-label", tile.type==="empty" ? "くさはら" : tile.type==="start" ? "しゅっぱつの えき" : tile.type==="goal" ? "ゴールの えき" : "レールを まわす");
+      button.dataset.movable=String(tile.movable===true);
+      button.classList.toggle("rail-tile--movable",tile.movable===true);
+      button.classList.toggle("rail-tile--fixed",["straight","curve"].includes(tile.type)&&!tile.movable);
+      button.setAttribute("aria-label", tile.type==="empty" ? "くさはら" : tile.type==="start" ? "しゅっぱつの えき" : tile.type==="goal" ? "ゴールの えき" : tile.movable ? "きいろい わく。タップして レールを まわす" : "うごかない レール");
       const image=svg("svg",{viewBox:"0 0 100 100","aria-hidden":"true"});
-      image.append(svg("rect",{x:1,y:1,width:98,height:98,rx:14,fill:"#eaf5dc",stroke:"#ccdfb5","stroke-width":2}));
+      image.append(svg("rect",{x:2,y:2,width:96,height:96,rx:14,
+        fill:tile.movable?"#fff5d9":"#eaf5dc",
+        stroke:tile.movable?"#e6ab2b":"#ccdfb5",
+        "stroke-width":tile.movable?5:2}));
       if (tile.type==="straight" || tile.type==="curve") {
         const art=railArt(tile.type==="straight" ? "M50 0V100" : "M50 0Q50 50 100 50"); art.style.transform=`rotate(${tile.rotation*90}deg)`; image.append(art);
+        if(tile.movable) {
+          const mark=svg("text",{x:85,y:23,"text-anchor":"middle","font-size":24,"font-weight":900,fill:"#946015"});
+          mark.textContent="↻";image.append(mark);
+        }
       } else if (tile.type==="start" || tile.type==="goal") {
         const p=[{x:50,y:0},{x:100,y:50},{x:50,y:100},{x:0,y:50}][tile.rotation]; image.append(railArt(`M50 50L${p.x} ${p.y}`));
         image.append(svg("rect",{x:24,y:32,width:52,height:40,rx:12,fill:tile.type==="start"?"#83c9e4":"#f5cf6a",stroke:"#466580","stroke-width":3}),
@@ -95,7 +105,7 @@
   }
   function reset() {
     stopTrain(); state=createState(puzzle); overlay.hidden=true; finished.hidden=true; announcement.textContent="";
-    hint.textContent="レールを タップして つなごう！"; render();
+    hint.textContent="きいろい わくの レールだけ まわせるよ！"; render();
   }
   function newPuzzle() { stopTrain(); number++; puzzle=rules.generate(difficulty, Math.random, number); reset(); }
   next.addEventListener("click",()=>{if(state.phase==="cleared"&&number<SET_SIZE)newPuzzle();});
