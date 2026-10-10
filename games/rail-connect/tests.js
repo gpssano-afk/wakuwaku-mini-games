@@ -9,6 +9,7 @@
     const state=game.createState(puzzle);
     for(const n of puzzle.solution.slice(1,-1)){
       const expected=connections({...puzzle.tiles[n],rotation:puzzle.tiles[n].solutionRotation}).sort().join();
+      if(!puzzle.tiles[n].movable){assert(connections(state.tiles[n]).sort().join()===expected,"Fixed rail mismatched solution");continue;}
       let turns=0;while(connections(state.tiles[n]).sort().join()!==expected&&turns<4){assert(game.rotate(state,n),"Rotation failed");turns++;}
       assert(turns<4,"Cannot solve using rotation");
     }
@@ -32,6 +33,13 @@
       const bends=p.solution.filter(n=>p.tiles[n].type==="curve").length;
       assert(difficulty==="easy"?p.solution.length>=5&&p.solution.length<=7&&bends===1:p.solution.length>=2*p.rows+2&&bends>=4,"Difficulty not met");
       const changed=p.solution.filter(n=>connections(p.tiles[n]).sort().join()!==connections(solved.tiles[n]).sort().join());assert(changed.length>=2,"Needs fewer than two rail changes");
+      const movable=p.tiles.map((tile,index)=>tile.movable?index:-1).filter(index=>index>=0);
+      const target=difficulty==="easy"?(p.rows===3?2:3):(p.rows===4?3:4);
+      assert(movable.length===target,"Too many rotating rails");
+      assert(movable.every(index=>p.solution.slice(1,-1).includes(index)),"Unexpected movable rail");
+      for(const index of p.solution.slice(1,-1)){
+        if(!p.tiles[index].movable)assert(!game.rotate(game.createState(p),index),"Fixed rail rotated");
+      }
       // The rails adjacent to both fixed stations initially lack the station port.
       const first=p.solution[1],last=p.solution.at(-2);
       assert(!connections(p.tiles[first]).includes(rules.direction(first,p.start,p.cols))&&!connections(p.tiles[last]).includes(rules.direction(last,p.goal,p.cols)),"An endpoint initially connected");
@@ -55,6 +63,8 @@
   test("駅・草原は固定、電車走行中とクリア後は回転できない",()=>{
     const p=rules.generate("easy",()=>0),s=game.createState(p),n=p.solution[1];
     assert(!game.rotate(s,p.start)&&!game.rotate(s,p.goal)&&!game.rotate(s,-1),"Station changed");
+    const fixed=p.solution.slice(1,-1).find(index=>!p.tiles[index].movable);
+    if(fixed!==undefined)assert(!game.rotate(s,fixed),"Fixed rail rotated");
     const empty=p.tiles.findIndex(t=>t.type==="empty");assert(!game.rotate(s,empty),"Grass changed");
     for(const phase of ["running","cleared"]){s.phase=phase;assert(!game.rotate(s,n),"Animation rotation allowed");}
   });
