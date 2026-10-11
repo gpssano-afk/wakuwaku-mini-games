@@ -1,6 +1,6 @@
 "use strict";
 // Increment VERSION when publishing changes to the precached game files.
-const VERSION = "v14";
+const VERSION = "v15";
 const ROOT = new URL("./", self.location.href);
 // Include the scope so two apps hosted on one origin never delete each other's cache.
 const PREFIX = `wakuwaku:${ROOT.pathname}:`;
@@ -20,6 +20,48 @@ const FILES = [
   "games/rail-connect/game.js", "games/rail-connect/generator.js",
   "games/cube-fit/index.html", "games/cube-fit/difficulty.html", "games/cube-fit/style.css",
   "games/cube-fit/renderer.js", "games/cube-fit/generator.js", "games/cube-fit/game.js",
+  "games/common/pictures.js",
+  "games/common/ten-game.js",
+  "games/common/play.css",
+  "games/what-missing/index.html",
+  "games/what-missing/generator.js",
+  "games/what-missing/game.js",
+  "assets/games/what-missing.svg",
+  "games/drum-echo/index.html",
+  "games/drum-echo/generator.js",
+  "games/drum-echo/game.js",
+  "assets/games/drum-echo.svg",
+  "games/picture-chain/index.html",
+  "games/picture-chain/generator.js",
+  "games/picture-chain/game.js",
+  "assets/games/picture-chain.svg",
+  "games/drum-echo/audio.js",
+  "assets/pictures/apple.svg",
+  "assets/pictures/ball.svg",
+  "assets/pictures/bear.svg",
+  "assets/pictures/camel.svg",
+  "assets/pictures/car.svg",
+  "assets/pictures/cat.svg",
+  "assets/pictures/chicken.svg",
+  "assets/pictures/doll.svg",
+  "assets/pictures/eggplant.svg",
+  "assets/pictures/fish.svg",
+  "assets/pictures/fox.svg",
+  "assets/pictures/glasses.svg",
+  "assets/pictures/gorilla.svg",
+  "assets/pictures/horse.svg",
+  "assets/pictures/panda.svg",
+  "assets/pictures/pig.svg",
+  "assets/pictures/pillow.svg",
+  "assets/pictures/squirrel.svg",
+  "assets/pictures/tanuki.svg",
+  "assets/pictures/top.svg",
+  "assets/pictures/train.svg",
+  "assets/pictures/trumpet.svg",
+  "assets/pictures/turtle.svg",
+  "assets/pictures/umbrella.svg",
+  "assets/pictures/watermelon.svg",
+
 ].map(path => new URL(path, ROOT).href);
 
 self.addEventListener("install", event => {

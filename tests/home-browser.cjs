@@ -28,8 +28,8 @@ const games=[['hitofude','#board'],['block-fit','#block-board'],['rail-connect',
    assert.ok(result.footer.y>=Math.max(...result.cards.map(c=>c.box.bottom))+19,'Footer overlaps cards');return result;
   }
   for(const width of [320,360,390,430,1024]){
-   await page.setViewportSize({width,height:width===320?568:width===1024?768:844});await home();await layout(4);
-   assert.deepEqual(await page.locator('.game-card').evaluateAll(els=>els.map(el=>el.dataset.game)),games.map(g=>g[0]));
+   await page.setViewportSize({width,height:width===320?568:width===1024?768:844});await home();await layout(7);
+   assert.deepEqual(await page.locator('.game-card').evaluateAll(els=>els.map(el=>el.dataset.game)),[...games.map(g=>g[0]),'what-missing','drum-echo','picture-chain']);
    assert.equal(await page.locator('.game-art img').evaluateAll(els=>els.every(el=>el.complete&&el.naturalWidth>0)),true);
    await page.screenshot({path:path.join(artifacts,`home-${width}.png`),fullPage:true});
    console.log(`PASS ${width}px: two columns, equal row heights/buttons, readable text, no overflow, original SVGs and local round font`);
@@ -46,15 +46,15 @@ const games=[['hitofude','#board'],['block-fit','#block-board'],['rail-connect',
    assert.equal(await page.locator('#stage-number').textContent(),'もんだい 1 / 10');assert.equal(await page.locator('#set-progress').getAttribute('aria-valuenow'),'0');
    await page.locator('.howto-help').tap();assert.equal(await page.locator('#howto-overlay').isVisible(),true);await page.locator('#howto-start').tap();
    await page.locator('#reset').tap();assert.equal(await page.locator('#stage-number').textContent(),'もんだい 1 / 10');assert.equal(await page.locator('#set-progress').getAttribute('aria-valuenow'),'0');
-   await page.locator('a[aria-label="ホームへもどる"]').tap();await page.waitForURL('**/index.html');assert.equal(await page.locator('.game-card').count(),4);
+   await page.locator('a[aria-label="ホームへもどる"]').tap();await page.waitForURL('**/index.html');assert.equal(await page.locator('.game-card').count(),7);
    console.log(`PASS ${game} ${mode}: native card/difficulty tap, guide/reopen, start/reset, ten-question metadata, home`);
   }
   // Test-only additions change the loaded catalog, never the production file.
   const source=fs.readFileSync(path.join(__dirname,'../home.js'),'utf8');
   for(const count of [5,6,7,8,9,10]){
-   const extras=Array.from({length:count-4},(_,i)=>({id:`test-${i}`,title:i===0?'ながい なまえの パズルで あそぼう':'テストのパズル',category:'ひらめきパズル',description:'ながい せつめいでも よみやすく ならべよう！',href:'./games/hitofude/difficulty.html',image:'./assets/games/hitofude.svg'}));
+   const extras=Array.from({length:Math.max(0,count-7)},(_,i)=>({id:`test-${i}`,title:i===0?'ながい なまえの パズルで あそぼう':'テストのパズル',category:'ひらめきパズル',description:'ながい せつめいでも よみやすく ならべよう！',href:'./games/hitofude/difficulty.html',image:'./assets/games/hitofude.svg'}));
    const extraContext=await browser.newContext({viewport:{width:320,height:568},hasTouch:true,isMobile:true,serviceWorkers:'block'});
-   await extraContext.route('**/home.js',route=>route.fulfill({contentType:'text/javascript',body:source.replace('  const container =',`  games.push(...${JSON.stringify(extras)});\n  const container =`)}));
+   await extraContext.route('**/home.js',route=>route.fulfill({contentType:'text/javascript',body:source.replace('  const container =',`  games.splice(${count}); games.push(...${JSON.stringify(extras)});\n  const container =`)}));
    const extraPage=await extraContext.newPage();extraPage.on('pageerror',error=>errors.push(error.message));
    // Reuse the same layout oracle against another page without exposing a production hook.
    await extraPage.goto(root);await extraPage.locator('.game-card').nth(count-1).waitFor();await extraPage.evaluate(()=>document.fonts.ready);
@@ -74,11 +74,11 @@ const games=[['hitofude','#board'],['block-fit','#block-board'],['rail-connect',
   }
   const fallbackContext=await browser.newContext({viewport:{width:320,height:568},serviceWorkers:'block'});
   await fallbackContext.route('**/assets/games/*.svg',route=>route.abort());const fallbackPage=await fallbackContext.newPage();
-  await fallbackPage.goto(root);await fallbackPage.locator('.art-fallback').nth(3).waitFor();
-  assert.equal(await fallbackPage.locator('.game-card').count(),4);assert.equal(await fallbackPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  await fallbackPage.goto(root);await fallbackPage.locator('.art-fallback').nth(6).waitFor();
+  assert.equal(await fallbackPage.locator('.game-card').count(),7);assert.equal(await fallbackPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
   const ratios=await fallbackPage.locator('.game-art').evaluateAll(els=>els.map(el=>{const b=el.getBoundingClientRect();return b.width/b.height;}));assert.ok(ratios.every(r=>Math.abs(r-1.6)<.001));
   await fallbackPage.screenshot({path:path.join(artifacts,'home-image-fallback.png'),fullPage:true});await fallbackContext.close();
-  await home();assert.equal(await page.locator('.game-card').count(),4);await page.keyboard.press('Tab');assert.equal(await page.locator('.game-card').first().evaluate(el=>el===document.activeElement),true);
-  assert.deepEqual(errors,[]);console.log('PASS image failure layout; keyboard link; production remains four cards; no JavaScript errors');
+  await home();assert.equal(await page.locator('.game-card').count(),7);await page.keyboard.press('Tab');assert.equal(await page.locator('.game-card').first().evaluate(el=>el===document.activeElement),true);
+  assert.deepEqual(errors,[]);console.log('PASS image failure layout; keyboard link; production remains seven cards; no JavaScript errors');
  }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -22,7 +22,7 @@ window.CubeGenerator={...originalCubeGenerator,generate:(...args)=>{window.testG
     // Independent selection oracle: match translated voxel sets, not answer index or fits().
     const answer=()=>page.evaluate(()=>{const p=window.testPuzzle,hole=new Set(p.missing.map(c=>`${c.x},${c.y},${c.z}`));return p.options.findIndex(piece=>{if(piece.length!==hole.size)return false;for(let x=-2;x<p.size;x++)for(let y=-2;y<p.size;y++)for(let z=-2;z<p.size;z++)if(piece.every(c=>hole.has(`${c.x+x},${c.y+y},${c.z+z}`)))return true;return false;});});
     const waitClear=()=>page.waitForFunction(()=>document.querySelector('#cube-scene').dataset.phase==='cleared');
-    await page.goto(root);assert.equal(await page.locator('.game-card').count(),4);await page.screenshot({path:path.join(artifacts,'home-four-games.png'),fullPage:true});
+    await page.goto(root);assert.equal(await page.locator('.game-card').count(),7);await page.screenshot({path:path.join(artifacts,'home-four-games.png'),fullPage:true});
     await page.locator('.game-card[href*="cube-fit"]').tap();await page.waitForURL('**/cube-fit/difficulty.html');assert.equal(await page.locator('.difficulty-card').count(),2);await page.locator('.back-link').tap();await page.waitForURL('**/index.html');
     for(const mode of ['easy','hard']) {
       await page.emulateMedia({reducedMotion:'no-preference'});
@@ -73,7 +73,7 @@ window.CubeGenerator={...originalCubeGenerator,generate:(...args)=>{window.testG
           else{assert.equal(await page.locator('#clear-overlay').isVisible(),false);assert.equal(await page.locator('#set-complete').isVisible(),true);assert.equal(await page.locator('#set-complete-title').textContent(),'ぜんぶ できた！');const generated=await page.evaluate(()=>window.testGenerated);await page.locator('#next').evaluate(el=>el.click());assert.equal((await data()).question,'10');assert.equal(await page.evaluate(()=>window.testGenerated),generated);await page.screenshot({path:path.join(artifacts,`cube-${mode}-finish.png`),fullPage:true});await page.locator('#set-play-again').tap();await page.waitForFunction(()=>document.querySelector('#cube-scene').dataset.question==='1');assert.equal(await page.evaluate(()=>window.testGenerated),generated+1);assert.equal(await page.locator('#set-progress').getAttribute('aria-valuenow'),'0');assert.equal((await data()).difficulty,mode);assert.equal(await page.locator('#set-complete').isVisible(),false);}
         }
       }
-      await page.locator('#difficulty-label').tap();await page.waitForURL('**/cube-fit/difficulty.html');await page.locator('.back-link').tap();await page.waitForURL('**/index.html');assert.equal(await page.locator('.game-card').count(),4);console.log(`PASS ${mode}: 20 native-touch clears / 10-question finish / no 11 / new ten / home`);
+      await page.locator('#difficulty-label').tap();await page.waitForURL('**/cube-fit/difficulty.html');await page.locator('.back-link').tap();await page.waitForURL('**/index.html');assert.equal(await page.locator('.game-card').count(),7);console.log(`PASS ${mode}: 20 native-touch clears / 10-question finish / no 11 / new ten / home`);
     }
     assert.deepEqual(errors,[]);console.log('PASS cube touch browser suite; no JavaScript errors; artifacts '+artifacts);
   } finally {await browser.close();}

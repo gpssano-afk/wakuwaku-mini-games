@@ -15,3 +15,5 @@ for(const name of ['testResults','blockTestResults','railTestResults','cubeTestR
   count+=result.results.length;console.log(`${name}: ${result.results.length} / ${result.results.length} PASS`);
 }
 console.log(`PASS ${count} tests; 16,000 generated puzzles`);
+
+require("./new-game-logic.cjs");

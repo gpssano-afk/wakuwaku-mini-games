@@ -21,6 +21,21 @@
       id: "cube-fit", title: "キューブぴったり", category: "くうかんパズル",
       description: "あいた ぶぶんに はまる かたちを えらぼう！",
       href: "./games/cube-fit/difficulty.html", image: "./assets/games/cube-fit.svg"
+    },
+    {
+      id: "what-missing", title: "なにがきえた？", category: "おぼえるあそび",
+      description: "えを おぼえて、きえたものを みつけよう！",
+      href: "./games/what-missing/index.html", image: "./assets/games/what-missing.svg"
+    },
+    {
+      id: "drum-echo", title: "たいこまねっこ", category: "おとと きおく",
+      description: "おてほんと おなじじゅんに たいこを たたこう！",
+      href: "./games/drum-echo/index.html", image: "./assets/games/drum-echo.svg"
+    },
+    {
+      id: "picture-chain", title: "えでしりとり", category: "ことばあそび",
+      description: "りんごの つぎは？ えで ことばを つなごう！",
+      href: "./games/picture-chain/index.html", image: "./assets/games/picture-chain.svg"
     }
   ];
   const container = document.getElementById("games");
