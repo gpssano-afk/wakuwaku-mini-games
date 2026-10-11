@@ -1,7 +1,7 @@
 /* Chromium native taps. Clock acceleration only for waiting, never for input cadence. */
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {chromium}=require('playwright');
-const ids=['what-missing','drum-echo','picture-chain'];
+const ids=['what-missing','drum-echo'];
 async function verifyNewGames(context,root,{full=true,artifacts='/tmp/wakuwaku-new-games'}={}){
  fs.mkdirSync(artifacts,{recursive:true});const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
  const navigationStops=[];await page.exposeFunction('reportNavigationStop',record=>navigationStops.push(record));await page.addInitScript(()=>{
@@ -34,13 +34,8 @@ async function verifyNewGames(context,root,{full=true,artifacts='/tmp/wakuwaku-n
     await tap(page.locator(`#drum-board [data-drum="${(sequence[0]+1)%2}"]`));assert.equal(await page.locator('#drum-board').getAttribute('data-entered'),'0');assert.equal(await number(),'1');await tap(page.locator('#sound-toggle'));const before=await page.evaluate(()=>window.audioStarts.length);assert.equal(await page.locator('#sound-toggle').getAttribute('aria-pressed'),'false');const repeat=await listen();assert.deepEqual(repeat,sequence);assert.equal(await page.evaluate(()=>window.audioStarts.length),before);
     await tap(page.locator('#sound-toggle'));await tap(page.locator('#listen'));assert.equal(await page.locator('#drum-board').getAttribute('data-phase'),'demo');await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));});assert.equal(await page.locator('#pause-overlay').isVisible(),true);assert.equal(await page.evaluate(()=>window.audioContexts[0].state),'suspended');assert.equal(await page.locator('.drum.is-lit').count(),0);const stopped=await page.evaluate(()=>window.audioStarts.length);await page.clock.runFor(9000);assert.equal(await page.evaluate(()=>window.audioStarts.length),stopped);await page.evaluate(()=>{delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));});await tap(page.locator('#resume'));const afterResume=await listen({real:true});assert.deepEqual(afterResume,sequence);assert.equal(await page.evaluate(()=>window.audioContexts[0].state),'running');assert.ok(await page.evaluate(()=>window.audioStarts.length)>stopped);await tap(page.locator('#sound-toggle'));}
    for(const drum of sequence){const button=page.locator(`#drum-board [data-drum="${drum}"]`);await button.tap();await button.dispatchEvent("click");await page.waitForTimeout(250);}
-  }else{
-   if(full&&n===9)await layout(id,'four-choices');let partialChecked=false;const initialChain=await snapshot(id);for(let step=0;step<(n>=9?2:1);step++){
-    const letter=await page.locator('.chain-instruction .target-letter').textContent(),buttons=page.locator('#word-choices button');const names=await buttons.locator('.picture-name').allTextContents();assert.equal(names.length,[2,2,2,3,3,3,3,3,4,4][n-1]);const answers=names.map((name,i)=>name[0]===letter?i:-1).filter(i=>i>=0);assert.equal(answers.length,1);
-    if(n===1){await tap(buttons.nth((answers[0]+1)%names.length));assert.equal(await number(),'1');assert.equal(await page.locator('#word-choices').getAttribute('data-step'),'0');}
-    if(full&&n===9&&step===1&&!partialChecked){await tap(buttons.nth((answers[0]+1)%names.length));assert.equal(await page.locator('.word-card').count(),2);await tap(page.locator('#reset'));assert.deepEqual(await snapshot(id),initialChain);assert.equal(await number(),'9');partialChecked=true;step=-1;continue;}await tap(buttons.nth(answers[0]));await buttons.nth(answers[0]).dispatchEvent('click');if(step===0&&n>=9){assert.equal(await page.locator('#clear-overlay').isVisible(),false);await page.clock.runFor(700);assert.equal(await page.locator('#word-choices').getAttribute('data-step'),'1');}
-   }
   }
+
   await page.locator('#play-area button').first().dispatchEvent('click');await page.clock.runFor(800);await page.waitForFunction(()=>document.querySelector('main').dataset.phase==='cleared');assert.equal(await number(),String(n));assert.equal(await page.locator('#set-progress').getAttribute('aria-valuenow'),String(n));
  }
  for(const id of ids){
@@ -50,7 +45,7 @@ async function verifyNewGames(context,root,{full=true,artifacts='/tmp/wakuwaku-n
    for(const width of [320,360,390,430,1024]){await page.setViewportSize({width,height:width===320?568:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await page.screenshot({path:path.join(artifacts,`${id}-guide-${width}.png`),fullPage:true});}
    await page.setViewportSize({width:320,height:568});
    if(id==='what-missing'){await page.clock.runFor(2000);await tap(page.locator('#guide-demo button[data-item="bear"]'));assert.ok((await page.locator('#guide-demo').textContent()).includes('できた'));}
-   if(id==='picture-chain'){await tap(page.locator('#guide-demo button[data-item="gorilla"]'));assert.ok((await page.locator('#guide-demo').textContent()).includes('できた'));}
+
    if(id==='drum-echo'){await tap(page.locator('#practice-play'));await page.clock.runFor(1700);await tap(page.locator('#guide-demo [data-drum="0"]'));await tap(page.locator('#guide-demo [data-drum="1"]'));assert.ok((await page.locator('#guide-demo').textContent()).includes('できた'));await page.goto(root+'games/drum-echo/index.html');}
   }
   await tap(page.locator('#howto-start'));assert.equal(await number(),'1');if(full){for(const width of [320,360,390,430,1024]){await page.setViewportSize({width,height:width===320?568:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);for(const button of await page.locator('main button:visible').all()){const box=await button.boundingBox();assert.ok(box.x>=0&&box.x+box.width<=width+1);}await page.screenshot({path:path.join(artifacts,`${id}-play-${width}.png`),fullPage:true});}await page.setViewportSize({width:320,height:568});}const initial=await snapshot(id);await page.locator('#next').evaluate(e=>e.click());assert.equal(await number(),'1');await tap(page.locator('#reset'));assert.deepEqual(await snapshot(id),initial);assert.equal(await number(),'1');
@@ -68,7 +63,7 @@ async function verifyNewGames(context,root,{full=true,artifacts='/tmp/wakuwaku-n
   await page.locator('a[aria-label="ホームへもどる"]').tap();await page.waitForURL('**/index.html');await page.waitForTimeout(300);assert.equal(await page.locator('.game-card').count(),7);
   console.log(`PASS ${id}: ${full?'native touch ten questions/reward/replay':'offline clear/next'}, guide, wrong/retry, reset same puzzle, suspend/resume, input guards, home${id==='drum-echo'?', WebAudio gesture/mute/light/stop':''}`);
  }
- assert.ok(navigationStops.some(record=>record.game==='drum-echo'&&record.states.every(state=>state==='suspended')&&record.lights===0),'Audio/lights survived home navigation');assert.deepEqual(errors,[]);await page.close();
+ assert.ok(navigationStops.some(record=>record.game==='drum-echo'&&record.states.every(state=>state==='suspended')&&record.lights===0),'Audio/lights survived home navigation');assert.deepEqual(errors,[]);await page.close();await require('./picture-chain-browser.cjs').verifyPictureChain(context,root,{full,artifacts});
 }
 module.exports={verifyNewGames};
 if(require.main===module)(async()=>{const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',headless:true});try{const context=await browser.newContext({viewport:{width:320,height:568},hasTouch:true,isMobile:true,serviceWorkers:'block'});await verifyNewGames(context,(process.argv[2]||'http://127.0.0.1:8030/').replace(/\/?$/,'/'));}finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

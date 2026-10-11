@@ -1,6 +1,6 @@
 "use strict";
 // Increment VERSION when publishing changes to the precached game files.
-const VERSION = "v15";
+const VERSION = "v16";
 const ROOT = new URL("./", self.location.href);
 // Include the scope so two apps hosted on one origin never delete each other's cache.
 const PREFIX = `wakuwaku:${ROOT.pathname}:`;
@@ -32,6 +32,7 @@ const FILES = [
   "games/drum-echo/game.js",
   "assets/games/drum-echo.svg",
   "games/picture-chain/index.html",
+  "games/picture-chain/style.css",
   "games/picture-chain/generator.js",
   "games/picture-chain/game.js",
   "assets/games/picture-chain.svg",

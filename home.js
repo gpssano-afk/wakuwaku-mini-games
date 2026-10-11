@@ -34,7 +34,7 @@
     },
     {
       id: "picture-chain", title: "えでしりとり", category: "ことばあそび",
-      description: "りんごの つぎは？ えで ことばを つなごう！",
+      description: "えを じゅんばんに つないで、ぜんぶ つかおう！",
       href: "./games/picture-chain/index.html", image: "./assets/games/picture-chain.svg"
     }
   ];
