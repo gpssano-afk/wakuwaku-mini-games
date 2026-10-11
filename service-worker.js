@@ -1,12 +1,16 @@
 "use strict";
 // Increment VERSION when publishing changes to the precached game files.
-const VERSION = "v13";
+const VERSION = "v14";
 const ROOT = new URL("./", self.location.href);
 // Include the scope so two apps hosted on one origin never delete each other's cache.
 const PREFIX = `wakuwaku:${ROOT.pathname}:`;
 const CACHE = PREFIX + VERSION;
 const FILES = [
   "./", "index.html", "style.css", "app.js", "manifest.json",
+  "home.css", "home.js", "assets/home/friends.svg", "assets/home/meadow.svg",
+  "assets/fonts/wakuwaku-round.woff",
+  "assets/games/hitofude.svg", "assets/games/block-fit.svg",
+  "assets/games/rail-connect.svg", "assets/games/cube-fit.svg",
   "icons/icon-192.png", "icons/icon-512.png",
   "games/hitofude/index.html", "games/hitofude/difficulty.html", "games/hitofude/style.css",
   "games/hitofude/game.js", "games/hitofude/stages.js",

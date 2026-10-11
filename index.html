@@ -3,98 +3,32 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#edf6fc">
-  <meta name="description" content="子どもと遊べる、シンプルなミニゲーム。一筆書き・ブロック・レール・立体のパズル。">
+  <meta name="theme-color" content="#fffef6">
+  <meta name="description" content="わくわく、ひらめく。子どもと遊べる一筆書き・ブロック・レール・立体のミニゲーム。">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="わくわく">
   <title>わくわくミニゲーム</title>
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" type="image/png" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="preload" href="./assets/fonts/wakuwaku-round.woff" as="font" type="font/woff" crossorigin>
   <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./home.css">
   <script src="./app.js" defer></script>
+  <script src="./home.js" defer></script>
 </head>
-<body>
+<body class="home-page">
   <main class="home">
     <header class="home-heading">
-      <p class="eyebrow"><span aria-hidden="true">✦</span> あそんで、ひらめこう。</p>
-      <h1><span>わくわく</span>ミニゲーム</h1>
-      <p>ちいさな「できた！」を、いっぱい。</p>
+      <img class="home-friends" src="./assets/home/friends.svg" width="720" height="250" alt="" aria-hidden="true">
+      <h1><span class="title-waku">わくわく<svg class="title-spark" viewBox="0 0 30 38" aria-hidden="true"><path d="m9 18 12-13M17 30l9-2" fill="none" stroke="#ffe17b" stroke-width="8" stroke-linecap="round"/></svg></span><span>ミニゲーム</span></h1>
+      <h2 class="section-title" id="choose-title">どれで あそぶ？</h2>
     </header>
-    <h2 class="section-title">どれで あそぶ？</h2>
-    <div class="games" aria-label="ゲームをえらぶ">
-      <a class="game-card" href="./games/hitofude/difficulty.html">
-        <span class="game-art" aria-hidden="true">
-          <svg viewBox="0 0 120 120" fill="none">
-            <path d="M18 96H42V74H65" stroke="#758ed0" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="18" cy="96" r="6" fill="#758ed0"/>
-            <circle cx="73" cy="46" r="32" fill="#ffedbb"/>
-            <path d="M73 23a23 23 0 0 0-15 40c5 4 6 7 6 12h18c0-5 1-8 6-12a23 23 0 0 0-15-40Z" fill="#ffd66b" stroke="#ba8b26" stroke-width="3"/>
-            <path d="m64 47 9 8 9-8M73 55v20" stroke="#fffdf5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-            <rect x="63" y="75" width="20" height="11" rx="4" fill="#4c657d"/>
-            <path d="M73 9V4M99 24l5-4M103 47h6M46 24l-5-4" stroke="#ba8b26" stroke-width="3" stroke-linecap="round"/>
-          </svg>
-        </span>
-        <span class="game-copy">
-          <span class="game-tag">ひらめきパズル</span>
-          <span class="game-title">ピカッとひとふで</span>
-          <span class="game-description">でんちから、ぜんぶのマスを<br>つないでみよう！</span>
-          <span class="play-label">あそぶ <span aria-hidden="true">→</span></span>
-        </span>
-      </a>
-      <a class="game-card" href="./games/block-fit/difficulty.html">
-        <span class="game-art" aria-hidden="true">
-          <svg viewBox="0 0 120 120" fill="none">
-            <rect x="8" y="36" width="70" height="70" rx="14" fill="#dce9ef"/>
-            <g stroke="#42536b" stroke-width="2.5">
-              <rect x="14" y="42" width="27" height="27" rx="6" fill="#78c5e5"/><rect x="14" y="73" width="27" height="27" rx="6" fill="#78c5e5"/>
-              <rect x="45" y="73" width="27" height="27" rx="6" fill="#8ec9a2"/>
-              <rect x="60" y="14" width="27" height="27" rx="6" fill="#f4a35d"/><rect x="91" y="14" width="27" height="27" rx="6" fill="#f4a35d"/>
-              <rect x="60" y="45" width="27" height="27" rx="6" fill="#f4a35d"/>
-            </g>
-            <path d="m91 89 5 5 12-13" stroke="#65a78d" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="m33 14 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" fill="#f4d463"/>
-          </svg>
-        </span>
-        <span class="game-copy">
-          <span class="game-tag">かたちのパズル</span>
-          <span class="game-title">ブロックぴったり</span>
-          <span class="game-description">カラフルなブロックを<br>ぴったり はめてみよう！</span>
-          <span class="play-label">あそぶ <span aria-hidden="true">→</span></span>
-        </span>
-      </a>
-      <a class="game-card" href="./games/rail-connect/difficulty.html">
-        <span class="game-art" aria-hidden="true">
-          <svg viewBox="0 0 120 120" fill="none">
-            <path d="M20 110V66Q20 32 56 32H110" stroke="#edb24c" stroke-width="25" stroke-dasharray="5 12"/>
-            <path d="M20 110V66Q20 32 56 32H110" stroke="#467aa4" stroke-width="16"/>
-            <path d="M20 110V66Q20 32 56 32H110" stroke="#edf5f8" stroke-width="7"/>
-            <rect x="53" y="13" width="47" height="38" rx="12" fill="#f5a444" stroke="#41667c" stroke-width="3"/>
-            <rect x="59" y="19" width="15" height="26" rx="5" fill="#91d3eb" stroke="#41667c" stroke-width="2"/>
-            <path d="M82 23v18M88 23v18" stroke="#fff6d7" stroke-width="3" stroke-linecap="round"/>
-            <circle cx="95" cy="32" r="3" fill="#fff6d7"/>
-            <path d="m83 77 3 7 7 3-7 3-3 7-3-7-7-3 7-3Z" fill="#f4d463"/>
-          </svg>
-        </span>
-        <span class="game-copy">
-          <span class="game-tag">レールのパズル</span>
-          <span class="game-title">レールつなぎ</span>
-          <span class="game-description">レールを くるくる まわして、<br>でんしゃを はしらせよう！</span>
-          <span class="play-label">あそぶ <span aria-hidden="true">→</span></span>
-        </span>
-      </a>
-      <a class="game-card" href="./games/cube-fit/difficulty.html">
-        <span class="game-art" aria-hidden="true"><svg viewBox="0 0 150 140" fill="none"><circle cx="57" cy="79" r="49" fill="#fff1cf"/><g transform="translate(57 77) scale(.7)" stroke="#8c5927" stroke-width="2" stroke-linejoin="round"><polygon points="60.00,34.64 30.00,51.96 30.00,17.32 60.00,0.00" fill="#d98b35"/><polygon points="-60.00,34.64 -60.00,0.00 -30.00,17.32 -30.00,51.96" fill="#f6b74f"/><polygon points="-30.00,-17.32 0.00,0.00 -30.00,17.32 -60.00,0.00" fill="#ffe19a"/><polygon points="-30.00,-17.32 -30.00,-51.96 0.00,-34.64 0.00,0.00" fill="#f6b74f"/><polygon points="0.00,-69.28 30.00,-51.96 0.00,-34.64 -30.00,-51.96" fill="#ffe19a"/><polygon points="30.00,51.96 0.00,69.28 0.00,34.64 30.00,17.32" fill="#d98b35"/><polygon points="-30.00,51.96 -30.00,17.32 0.00,34.64 0.00,69.28" fill="#f6b74f"/><polygon points="0.00,0.00 30.00,17.32 0.00,34.64 -30.00,17.32" fill="#ffe19a"/><polygon points="60.00,0.00 30.00,17.32 30.00,-17.32 60.00,-34.64" fill="#d98b35"/><polygon points="0.00,0.00 0.00,-34.64 30.00,-17.32 30.00,17.32" fill="#f6b74f"/><polygon points="30.00,-51.96 60.00,-34.64 30.00,-17.32 0.00,-34.64" fill="#ffe19a"/></g><g transform="translate(117 30) scale(.52)" stroke="#3b6c84" stroke-width="2.4" stroke-linejoin="round"><polygon points="-30.00,17.32 -30.00,-17.32 0.00,0.00 0.00,34.64" fill="#8acade"/><polygon points="0.00,-34.64 30.00,-17.32 0.00,0.00 -30.00,-17.32" fill="#c3ebf5"/><polygon points="60.00,34.64 30.00,51.96 30.00,17.32 60.00,0.00" fill="#569cbc"/><polygon points="0.00,34.64 0.00,0.00 30.00,17.32 30.00,51.96" fill="#8acade"/><polygon points="30.00,-17.32 60.00,0.00 30.00,17.32 0.00,0.00" fill="#c3ebf5"/></g><path d="m117 96 2 6 6 2-6 2-2 6-2-6-6-2 6-2Z" fill="#e4ae38"/></svg></span>
-        <span class="game-copy">
-          <span class="game-tag">りったいのパズル</span>
-          <span class="game-title">キューブぴったり</span>
-          <span class="game-description">たりない かたちは どれかな？<br>ぴったりの ブロックを <span style="white-space: nowrap">みつけよう！</span></span>
-          <span class="play-label">あそぶ <span aria-hidden="true">→</span></span>
-        </span>
-      </a>
-    </div>
-    <p class="home-note">ゆっくりでも、だいじょうぶ。<br>じぶんのペースで あそぼう。</p>
+    <div class="games" id="games" aria-labelledby="choose-title"></div>
+    <noscript><p class="noscript">ゲームで遊ぶにはJavaScriptを有効にしてください。</p></noscript>
+    <footer class="home-landscape" aria-hidden="true">
+      <img src="./assets/home/meadow.svg" width="720" height="140" alt="">
+    </footer>
   </main>
-  <noscript><p class="noscript">ゲームで遊ぶにはJavaScriptを有効にしてください。</p></noscript>
 </body>
 </html>
